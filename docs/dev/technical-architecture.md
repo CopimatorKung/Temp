@@ -109,6 +109,8 @@ tests/
 | `playbook_chat_sessions` | id, user_id, title, product, customer_segment, language, status, created_at, updated_at |
 | `playbook_messages` | id, session_id, user_id, question, answer, citations_json, abstained, feedback, created_at |
 | `voice_sessions` | id, user_id, persona, scenario, status, started_at, ended_at |
+| `voice_session_knowledge_items` | id, voice_session_id, playbook_section_id, title, source_type, focus, read_time, is_recommended |
+| `user_knowledge_bookmarks` | id, user_id, knowledge_item_id or playbook_section_id, source_context, created_at |
 | `voice_turns` | id, session_id, speaker, text, audio_uri, started_at |
 | `voice_response_latency_events` | id, session_id, ai_turn_id, user_id, action, latency_ms, captured_at |
 | `training_results` | id, user_id, session_id, submission_id, recording_review_batch_id, recording_review_attempt_id, type, score, summary_json |
@@ -172,6 +174,8 @@ Endpoint: `/ws/voice-sessions`
 | server to client | `error` | code, message, retryable |
 
 `response_latency.recorded` เป็น hidden analytics event ของ Senario session ไม่ต้องแสดงใน UI ผู้ใช้ โดยวัดเวลาตั้งแต่ AI/persona response ถูกส่งถึง frontend จน user เริ่มพิมพ์, กด push-to-talk หรือกดส่งข้อความ ใช้เพื่อวิเคราะห์ hesitation, confidence และ coaching opportunity หลัง session
+
+`voice_session_knowledge_items` เป็นรายการ knowledge ที่ระบบสรุปหลัง session ว่า user ควรเรียนรู้หรืออ่านอะไรเพิ่ม เช่น Playbook, Guardrail, FAQ หรือ Case Study โดยหน้า session detail แสดงใน tab `Knowledge Acquired` และให้ user favorite เก็บไว้ใน `user_knowledge_bookmarks` เพื่อกลับไปอ่านต่อในหน้า Knowledge ได้
 
 ## 8. Processing Flow: Quality Review Batch
 

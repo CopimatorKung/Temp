@@ -878,6 +878,42 @@ type ResponseLatencyAction = 'start_typing' | 'push_to_talk' | 'send_text';
 
 Backend should persist one event per `{aiTurnId, action}` and ignore duplicate client retries by `clientEventId` when available. This data is analytics-only and should not appear in the live conversation UI.
 
+### 8.1 Voice Senario Knowledge Acquired
+
+Session detail ต้องคืนรายการ knowledge ที่เกี่ยวข้องกับ session นั้น เพื่อให้ frontend แสดง tab `Knowledge Acquired` สำหรับการเรียนรู้หลังซ้อมและ bookmark ไว้อ่านต่อในหน้า Knowledge
+
+```json
+{
+  "knowledgeAcquired": [
+    {
+      "id": "ka-q2-promo-terms",
+      "title": "Q2 Promotion Terms for SME",
+      "summary": "เงื่อนไขโปรโมชัน Q2 สำหรับร้านค้า SME, วันหมดอายุ, ยอดขั้นต่ำ และข้อจำกัดสิทธิ์ที่ต้องแจ้งลูกค้า",
+      "source": "Playbook / Promotion / Q2 SME",
+      "type": "playbook",
+      "focus": "ใช้ตอบคำถาม eligibility และป้องกันการแจ้งเงื่อนไขไม่ครบ",
+      "readTime": "4 min read",
+      "favorited": true
+    }
+  ]
+}
+```
+
+Allowed `type` values:
+
+```ts
+type SessionKnowledgeType = 'playbook' | 'guardrail' | 'case-study' | 'faq';
+```
+
+Favorite action:
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `POST` | `/voice-sessions/:id/knowledge/:knowledgeItemId/favorite` | bookmark session knowledge source ให้ user |
+| `DELETE` | `/voice-sessions/:id/knowledge/:knowledgeItemId/favorite` | remove bookmark |
+
+Favorite เป็น user-level bookmark เพื่ออ่านต่อในหน้า Knowledge และไม่ควรแก้ไข Playbook source โดยตรง
+
 ## 9. Audio Submission Contract
 
 ### 9.1 `POST /audio-submissions`

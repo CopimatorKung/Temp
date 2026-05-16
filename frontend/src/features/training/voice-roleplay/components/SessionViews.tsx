@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FiBarChart2, FiCheckCircle, FiMic, FiSend, FiUser } from 'react-icons/fi';
+import { FiBarChart2, FiCheckCircle, FiMic, FiSend, FiSquare, FiUser } from 'react-icons/fi';
 import { Badge } from '../../../../components/ui/Badge';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/Card';
@@ -49,6 +49,7 @@ export function LiveSessionView({
   const aiResponseStartedAtRef = useRef(Date.now());
   const trackedLatencyKeysRef = useRef(new Set<string>());
   const responseLatencyEventsRef = useRef<ResponseLatencyEvent[]>([]);
+  const [isPushToTalkListening, setIsPushToTalkListening] = useState(false);
 
   const trackResponseLatency = (action: ResponseLatencyAction) => {
     const eventKey = `${latestAiMessageKey}:${action}`;
@@ -63,6 +64,16 @@ export function LiveSessionView({
       action,
       latencyMs: Date.now() - aiResponseStartedAtRef.current,
       capturedAt: new Date().toISOString(),
+    });
+  };
+
+  const togglePushToTalk = () => {
+    setIsPushToTalkListening((current) => {
+      if (!current) {
+        trackResponseLatency('push_to_talk');
+      }
+
+      return !current;
     });
   };
 
@@ -197,16 +208,33 @@ export function LiveSessionView({
                 defaultValue="ผมจะวัดจาก completion rate ของ onboarding และ score เฉลี่ยหลัง review ครั้งที่ 1-3 ครับ"
                 onChange={() => trackResponseLatency('start_typing')}
               />
+              {isPushToTalkListening ? (
+                <div className="grid gap-2 rounded-lg border border-primary/20 bg-primary/8 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="relative grid h-3 w-3 shrink-0 place-items-center">
+                        <span className="absolute h-3 w-3 animate-ping rounded-full bg-primary/50" />
+                        <span className="h-2 w-2 rounded-full bg-primary" />
+                      </span>
+                      <p className="truncate text-xs font-semibold uppercase tracking-[0.12em] text-primary">Listening</p>
+                    </div>
+                    <p className="text-xs font-medium text-muted-foreground">voice input active</p>
+                  </div>
+                  <VoiceInputMeter />
+                </div>
+              ) : null}
+
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <Button
                   type="button"
-                  variant="secondary"
+                  variant={isPushToTalkListening ? 'primary' : 'secondary'}
                   className="justify-center sm:w-auto"
-                  aria-label="Push to talk"
-                  onClick={() => trackResponseLatency('push_to_talk')}
+                  aria-label={isPushToTalkListening ? 'Stop recording' : 'Push to talk'}
+                  aria-pressed={isPushToTalkListening}
+                  onClick={togglePushToTalk}
                 >
-                  <FiMic className="h-4 w-4" />
-                  Push to talk
+                  {isPushToTalkListening ? <FiSquare className="h-4 w-4" /> : <FiMic className="h-4 w-4" />}
+                  {isPushToTalkListening ? 'Stop recording' : 'Push to talk'}
                 </Button>
                 <Button type="button" className="justify-center sm:w-auto" onClick={() => trackResponseLatency('send_text')}>
                   <FiSend className="h-4 w-4" />
@@ -218,6 +246,38 @@ export function LiveSessionView({
         </div>
       </section>
     </main>
+  );
+}
+
+function VoiceInputMeter() {
+  const levels = [34, 58, 42, 72, 48, 64, 38, 80, 52, 70, 44, 62, 36, 54, 40, 66, 46, 74];
+
+  return (
+    <div className="flex h-10 items-center gap-1 overflow-hidden rounded-full bg-background/80 px-3" aria-hidden="true">
+      {levels.map((height, index) => (
+        <span
+          key={`${height}-${index}`}
+          className="inline-block w-1 shrink-0 animate-pulse rounded-full bg-primary"
+          style={{
+            height: `${height}%`,
+            animationDelay: `${index * 70}ms`,
+            animationDuration: `${650 + (index % 4) * 120}ms`,
+          }}
+        />
+      ))}
+      <span className="ml-2 h-6 w-px animate-pulse bg-primary/60" />
+      {levels.slice(0, 8).map((height, index) => (
+        <span
+          key={`tail-${height}-${index}`}
+          className="inline-block w-1 shrink-0 animate-pulse rounded-full bg-primary/30"
+          style={{
+            height: `${Math.max(18, height - 20)}%`,
+            animationDelay: `${(index + 18) * 70}ms`,
+            animationDuration: `${720 + (index % 3) * 140}ms`,
+          }}
+        />
+      ))}
+    </div>
   );
 }
 

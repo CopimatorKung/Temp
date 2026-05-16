@@ -100,6 +100,18 @@ export function VoiceRoleplayPage() {
     setMode('session');
   };
 
+  const toggleMeetingRoom = (room: MeetingRoom) => {
+    if (activeMeetingRoomId === room.id) {
+      setActiveMeetingRoomId(undefined);
+      setActivePersonaIds([selectedPersonaId]);
+      return;
+    }
+
+    setActiveMeetingRoomId(room.id);
+    setActivePersonaIds(room.personaIds);
+    setSelectedPersonaId(room.personaIds[0] ?? selectedPersonaId);
+  };
+
   const finishSession = () => {
     const id = `vr-${Date.now()}`;
     const activeRoom = meetingRooms.find((room) => room.id === activeMeetingRoomId);
@@ -205,8 +217,9 @@ export function VoiceRoleplayPage() {
               meetingRooms={meetingRooms}
               personas={personas}
               sessions={sessions}
+              activeMeetingRoomId={activeMeetingRoomId}
               onCreateMeetingRoom={() => setCreatingMeetingRoom(true)}
-              onStartGroup={startSession}
+              onToggleMeetingRoom={toggleMeetingRoom}
             />
           )}
         </main>
@@ -245,6 +258,8 @@ export function VoiceRoleplayPage() {
         <PersonaSelectModal
           personas={personas}
           meetingRooms={meetingRooms}
+          initialPersonaIds={activePersonaIds}
+          initialMeetingRoomId={activeMeetingRoomId}
           onClose={() => setChoosingPersona(false)}
           onStart={startSession}
         />
@@ -472,14 +487,16 @@ function MeetingRoomTab({
   meetingRooms,
   personas,
   sessions,
+  activeMeetingRoomId,
   onCreateMeetingRoom,
-  onStartGroup,
+  onToggleMeetingRoom,
 }: {
   meetingRooms: typeof initialMeetingRooms;
   personas: typeof initialPersonas;
   sessions: typeof initialSessions;
+  activeMeetingRoomId?: string;
   onCreateMeetingRoom: () => void;
-  onStartGroup: (personaIds: string[], meetingRoomId?: string) => void;
+  onToggleMeetingRoom: (room: MeetingRoom) => void;
 }) {
   const multiStakeholderSessions = sessions.filter((session) => Boolean(session.meetingRoomId)).length;
 
@@ -514,7 +531,8 @@ function MeetingRoomTab({
                 key={room.id}
                 room={room}
                 personas={personas}
-                onStart={() => onStartGroup(room.personaIds, room.id)}
+                selected={room.id === activeMeetingRoomId}
+                onToggle={() => onToggleMeetingRoom(room)}
               />
             ))}
           </div>

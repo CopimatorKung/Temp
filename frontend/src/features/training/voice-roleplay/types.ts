@@ -32,6 +32,7 @@ export type Session = {
   meetingGoal?: string;
   improvementSuggestion?: string;
   conversation?: SessionConversationMessage[];
+  knowledgeAcquired?: SessionKnowledgeItem[];
   competencies: Record<CompetencyKey, number>;
   strengths: string[];
   growth: string[];
@@ -44,6 +45,17 @@ export type SessionConversationMessage = {
   text: string;
   timestamp: string;
   feedback?: string;
+};
+
+export type SessionKnowledgeItem = {
+  id: string;
+  title: string;
+  summary: string;
+  source: string;
+  type: 'playbook' | 'guardrail' | 'case-study' | 'faq';
+  focus: string;
+  readTime: string;
+  favorited?: boolean;
 };
 
 export type MeetingRoom = {

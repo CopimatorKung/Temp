@@ -362,6 +362,9 @@ UI ต้องแสดง:
 - overview ของ Voice Senario ต้องแยกเป็น 3 tabs คือ `Session History`, `Persona Management` และ `Meeting Room` ไม่รวม session history, radar, persona editor และ meeting room preset ไว้ใน view เดียวกัน
 - `Session History` แสดง past sessions, latest outcome, summary stats และ radar comparison
 - past session card ต้องคลิกเพื่อเปิด session detail ได้ โดยแสดง participants, score, radar comparison, strengths และ growth items
+- session detail ต้องมี tabs อย่างน้อย `Info`, `Conversation` และ `Knowledge Acquired`
+- `Knowledge Acquired` แสดงว่า session นี้ user ได้เรียนรู้เรื่องอะไร, มี Playbook/Guardrail/FAQ/Case Study ใดอ่านต่อเพื่ออ้างอิง และสามารถกด favorite source ไว้ดูภายหลังในหน้า Knowledge ได้
+- favorite ใน `Knowledge Acquired` เป็น user-level bookmark ไม่ใช่การแก้ Playbook source และต้อง sync กับ backend เมื่อมี API จริง
 - `Persona Management` แสดง persona selector/manager เป็น card grid ที่มี circular avatar, difficulty badge, trait tags และ CTA เลือกหรือแก้ persona
 - Meeting Room ต้องรองรับ preset เช่น `2 managers + 1 technical team` เพื่อเริ่ม session แบบหลาย stakeholder
 - `Start session` ต้องเปิด modal เพื่อเลือกว่าจะเริ่มจาก persona หรือ Meeting Room ก่อนเริ่ม session ไม่ควรเริ่มจาก persona ที่ซ่อนอยู่โดยไม่ยืนยัน

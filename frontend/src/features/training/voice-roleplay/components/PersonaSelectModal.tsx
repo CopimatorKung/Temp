@@ -12,16 +12,21 @@ type StartSource = 'personas' | 'meeting-room';
 export function PersonaSelectModal({
   personas,
   meetingRooms,
+  initialPersonaIds,
+  initialMeetingRoomId,
   onClose,
   onStart,
 }: {
   personas: Persona[];
   meetingRooms: MeetingRoom[];
+  initialPersonaIds?: string[];
+  initialMeetingRoomId?: string;
   onClose: () => void;
   onStart: (personaIds: string[], meetingRoomId?: string) => void;
 }) {
-  const [selectedIds, setSelectedIds] = useState<string[]>([personas[0]?.id].filter(Boolean));
-  const [source, setSource] = useState<StartSource>('personas');
+  const defaultPersonaIds = initialPersonaIds?.length ? initialPersonaIds : [personas[0]?.id].filter(Boolean);
+  const [selectedIds, setSelectedIds] = useState<string[]>(defaultPersonaIds);
+  const [source, setSource] = useState<StartSource>(initialMeetingRoomId ? 'meeting-room' : 'personas');
 
   const togglePersona = (personaId: string) => {
     setSelectedIds((current) => {
@@ -96,14 +101,27 @@ export function PersonaSelectModal({
                       .map((personaId) => personas.find((persona) => persona.id === personaId))
                       .filter((persona): persona is Persona => Boolean(persona));
 
+                    const selectedRoom = room.id === initialMeetingRoomId;
+
                     return (
-                      <article key={room.id} className="grid gap-3 rounded-lg border border-border bg-background/60 p-4">
+                      <article
+                        key={room.id}
+                        className={[
+                          'grid gap-3 rounded-lg border p-4 transition',
+                          selectedRoom
+                            ? 'border-primary bg-primary/10 shadow-panel'
+                            : 'border-border bg-background/60 hover:bg-secondary/40',
+                        ].join(' ')}
+                      >
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="font-semibold text-foreground">{room.name}</p>
                             <p className="mt-1 text-xs text-muted-foreground">{room.scenario}</p>
                           </div>
-                          <Badge tone={room.status === 'published' ? 'success' : 'muted'}>{room.status}</Badge>
+                          <div className="flex flex-wrap justify-end gap-2">
+                            {selectedRoom ? <Badge tone="default">selected</Badge> : null}
+                            <Badge tone={room.status === 'published' ? 'success' : 'muted'}>{room.status}</Badge>
+                          </div>
                         </div>
                         <p className="text-sm leading-6 text-muted-foreground">{room.description}</p>
                         <div className="flex -space-x-2">
@@ -113,7 +131,7 @@ export function PersonaSelectModal({
                         </div>
                         <Button type="button" onClick={() => onStart(room.personaIds, room.id)}>
                           <FiUsers className="h-4 w-4" />
-                          Start meeting room
+                          {selectedRoom ? 'Start selected room' : 'Start meeting room'}
                         </Button>
                       </article>
                     );

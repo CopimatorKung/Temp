@@ -14,9 +14,8 @@ export function Breadcrumbs() {
   return (
     <div className="sticky top-0 z-30 border-b border-border bg-card/95 px-5 py-3 shadow-sm backdrop-blur lg:px-8">
       <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 text-sm">
-        <Link to={routes.dashboard} className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground">
+        <Link to={routes.dashboard} aria-label="Platform home" className="inline-flex items-center text-muted-foreground hover:text-foreground">
           <FiHome className="h-4 w-4" />
-          Platform
         </Link>
         <FiChevronRight className="h-4 w-4 text-muted-foreground" />
         {isSenarioDetail ? (

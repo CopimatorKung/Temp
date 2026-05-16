@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { FiCheckCircle, FiEdit2, FiPlus, FiUser, FiUsers } from 'react-icons/fi';
+import { FiCheckCircle, FiEdit2, FiMinusCircle, FiPlus, FiUser, FiUsers } from 'react-icons/fi';
 import { Badge } from '../../../../components/ui/Badge';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/Card';
@@ -139,24 +139,34 @@ export function PersonaCard({
 export function MeetingRoomCard({
   room,
   personas,
-  onStart,
+  selected,
+  onToggle,
 }: {
   room: MeetingRoom;
   personas: Persona[];
-  onStart: () => void;
+  selected: boolean;
+  onToggle: () => void;
 }) {
   const roomPersonas = room.personaIds
     .map((personaId) => personas.find((persona) => persona.id === personaId))
     .filter((persona): persona is Persona => Boolean(persona));
 
   return (
-    <article className="grid gap-3 rounded-lg border border-border bg-card p-4">
+    <article
+      className={[
+        'grid gap-3 rounded-lg border p-4 transition',
+        selected ? 'border-primary bg-primary/8 shadow-panel' : 'border-border bg-card hover:bg-secondary/35',
+      ].join(' ')}
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-semibold text-foreground">{room.name}</p>
           <p className="mt-1 text-xs text-muted-foreground">{room.scenario}</p>
         </div>
-        <Badge tone={room.status === 'published' ? 'success' : 'muted'}>{room.status}</Badge>
+        <div className="flex flex-wrap justify-end gap-2">
+          {selected ? <Badge tone="default">in meeting</Badge> : null}
+          <Badge tone={room.status === 'published' ? 'success' : 'muted'}>{room.status}</Badge>
+        </div>
       </div>
       <p className="text-sm leading-6 text-muted-foreground">{room.description}</p>
       <div className="flex items-center justify-between gap-3">
@@ -164,9 +174,9 @@ export function MeetingRoomCard({
           <PersonaAvatarStack personas={roomPersonas} avatarClassName="h-9 w-9 border-card text-xs" />
           <span className="text-xs font-medium text-muted-foreground">{roomPersonas.length} personas</span>
         </div>
-        <Button type="button" variant="secondary" onClick={onStart}>
-          <FiUsers className="h-4 w-4" />
-          Start room
+        <Button type="button" variant={selected ? 'secondary' : 'primary'} onClick={onToggle}>
+          {selected ? <FiMinusCircle className="h-4 w-4" /> : <FiPlus className="h-4 w-4" />}
+          {selected ? 'Remove from meeting' : 'Add to meeting'}
         </Button>
       </div>
     </article>
