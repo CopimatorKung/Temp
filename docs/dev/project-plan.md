@@ -239,7 +239,8 @@ persona MVP ที่ควรมี:
 6. Scenario engine ใช้ persona rules + conversation state + preloaded articles เพื่อสร้างคำตอบ
 7. Backend ส่งข้อความเข้า Botnoi TTS
 8. Frontend เล่นเสียงตอบกลับ และแสดง transcript แบบ real-time หรือ near real-time
-9. เมื่อจบ session ระบบสรุปคะแนน เช่น discovery, objection handling, product accuracy, compliance และ confidence
+9. Frontend บันทึก hidden response latency event หลัง AI ตอบกลับ โดยวัดถึงจังหวะที่ sales เริ่มพิมพ์, กด push-to-talk หรือส่งข้อความ เพื่อใช้วิเคราะห์ hesitation/confidence โดยไม่แสดงใน UI
+10. เมื่อจบ session ระบบสรุปคะแนน เช่น discovery, objection handling, product accuracy, compliance และ confidence
 
 ### 5.7 Recording Review Workflow
 
@@ -551,7 +552,7 @@ flowchart LR
 | Quality Ops | time from call end to score, override rate |
 | Coaching | improvement ของ score หลัง coaching |
 | Q&A | source match quality, citation correctness, abstention quality |
-| Voice Senario | ASR latency, TTS latency, turn completion rate, session drop rate |
+| Voice Senario | ASR latency, TTS latency, user response latency, turn completion rate, session drop rate |
 | Onboarding | time to readiness, module completion rate, quiz pass rate |
 | Adoption | weekly active sales, manager dashboard usage |
 

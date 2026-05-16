@@ -851,9 +851,36 @@ Response:
 }
 ```
 
-## 8. Audio Submission Contract
+## 8. Voice Senario Hidden Analytics
 
-### 8.1 `POST /audio-submissions`
+Senario live session ต้องเก็บ response latency แบบไม่แสดงใน UI เพื่อใช้วิเคราะห์ hesitation, confidence และ coaching opportunity หลัง session โดยเริ่มจับเวลาจาก AI/persona response ล่าสุดที่ส่งถึง frontend จน user มี action แรกต่อ turn นั้น
+
+WSS event:
+
+```json
+{
+  "type": "response_latency.recorded",
+  "sessionId": "voice_session_001",
+  "aiTurnId": "turn_ai_004",
+  "clientEventId": "lat_001",
+  "messageKey": "คุณธันวา:ข้อเสนอน่าสนใจครับ...",
+  "action": "start_typing",
+  "latencyMs": 18320,
+  "capturedAt": "2026-05-17T14:12:20.000Z"
+}
+```
+
+Allowed `action` values:
+
+```ts
+type ResponseLatencyAction = 'start_typing' | 'push_to_talk' | 'send_text';
+```
+
+Backend should persist one event per `{aiTurnId, action}` and ignore duplicate client retries by `clientEventId` when available. This data is analytics-only and should not appear in the live conversation UI.
+
+## 9. Audio Submission Contract
+
+### 9.1 `POST /audio-submissions`
 
 Request:
 
@@ -891,7 +918,7 @@ Response:
 }
 ```
 
-### 8.2 Status Values
+### 9.2 Status Values
 
 ```ts
 type AudioSubmissionStatus =
@@ -905,7 +932,7 @@ type AudioSubmissionStatus =
   | 'failed';
 ```
 
-## 9. Transcript Contract
+## 10. Transcript Contract
 
 ### `GET /audio-submissions/:id/transcript`
 
@@ -937,7 +964,7 @@ type AudioSubmissionStatus =
 }
 ```
 
-## 10. Scorecard Result Contract
+## 11. Scorecard Result Contract
 
 ### `GET /audio-submissions/:id/scorecard`
 
@@ -1006,7 +1033,7 @@ type AudioSubmissionStatus =
 }
 ```
 
-## 11. Mock States ที่ต้องมี
+## 12. Mock States ที่ต้องมี
 
 | State | ใช้ทดสอบ UI |
 |---|---|
@@ -1020,7 +1047,7 @@ type AudioSubmissionStatus =
 | needs review | manager ต้องตรวจ |
 | override applied | มี manager override |
 
-## 12. Frontend Components ที่ผูกกับ Contract
+## 13. Frontend Components ที่ผูกกับ Contract
 
 | Component | Contract |
 |---|---|
@@ -1031,7 +1058,7 @@ type AudioSubmissionStatus =
 | `EvidenceDrawer` | `scorecard.sections.items.evidence` |
 | `OverrideScoreDialog` | `PATCH /scorecard-results/:id/override` |
 
-## 13. Backend Notes
+## 14. Backend Notes
 
 - backend ต้อง validate `scorecardTemplateId` ว่า match กับ topic/customerSegment/product/region/language จริง
 - backend ต้องเก็บ template version ที่ใช้ประเมินไว้กับ result เสมอ

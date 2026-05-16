@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FiBarChart2, FiCheckCircle, FiMic, FiSend, FiUser } from 'react-icons/fi';
 import { Badge } from '../../../../components/ui/Badge';
 import { Button } from '../../../../components/ui/Button';
@@ -8,6 +8,15 @@ import { liveMessages } from '../mock-data';
 import type { Persona, Session } from '../types';
 import { getPersonaLabel } from '../utils';
 import { PersonaAvatar, RadarChart, ScoreRing } from './Visuals';
+
+type ResponseLatencyAction = 'start_typing' | 'push_to_talk' | 'send_text';
+
+type ResponseLatencyEvent = {
+  aiMessageKey: string;
+  action: ResponseLatencyAction;
+  latencyMs: number;
+  capturedAt: string;
+};
 
 export function LiveSessionView({
   personas,
@@ -32,6 +41,30 @@ export function LiveSessionView({
       return { message, persona };
     });
   }, [personas, primaryPersona]);
+  const latestAiMessageKey = useMemo(() => {
+    const latestAiMessage = [...conversationMessages].reverse().find(({ message }) => message.align === 'left');
+
+    return latestAiMessage ? `${latestAiMessage.message.speaker}:${latestAiMessage.message.text}` : 'session-start';
+  }, [conversationMessages]);
+  const aiResponseStartedAtRef = useRef(Date.now());
+  const trackedLatencyKeysRef = useRef(new Set<string>());
+  const responseLatencyEventsRef = useRef<ResponseLatencyEvent[]>([]);
+
+  const trackResponseLatency = (action: ResponseLatencyAction) => {
+    const eventKey = `${latestAiMessageKey}:${action}`;
+
+    if (trackedLatencyKeysRef.current.has(eventKey)) {
+      return;
+    }
+
+    trackedLatencyKeysRef.current.add(eventKey);
+    responseLatencyEventsRef.current.push({
+      aiMessageKey: latestAiMessageKey,
+      action,
+      latencyMs: Date.now() - aiResponseStartedAtRef.current,
+      capturedAt: new Date().toISOString(),
+    });
+  };
 
   useEffect(() => {
     const startedAt = Date.now();
@@ -42,13 +75,22 @@ export function LiveSessionView({
     return () => window.clearInterval(timerId);
   }, []);
 
+  useEffect(() => {
+    aiResponseStartedAtRef.current = Date.now();
+    trackedLatencyKeysRef.current.clear();
+  }, [latestAiMessageKey]);
+
   return (
-    <main className="grid min-w-0 gap-5 p-4 md:p-5 lg:p-6 xl:grid-cols-[minmax(0,1fr)_240px] xl:items-start">
-      <aside className="order-2 grid min-w-0 content-start gap-2 rounded-lg border border-border bg-card p-3 shadow-sm xl:sticky xl:top-20">
-        <div className="rounded-lg border border-border bg-secondary/35 p-3">
-          <div className="flex items-center justify-between gap-2">
-            <Badge tone={difficultyMeta[primaryPersona.difficulty].tone}>{personas.length > 1 ? 'Multi' : difficultyMeta[primaryPersona.difficulty].label}</Badge>
-            <span className="text-xs font-semibold text-primary">Trust 64%</span>
+    <main className="grid min-w-0 gap-5 p-4 md:p-5 lg:p-6 xl:grid-cols-[minmax(0,1fr)_minmax(220px,240px)] xl:items-start">
+      <aside className="order-2 grid min-w-0 max-w-full content-start gap-2 overflow-hidden rounded-lg border border-border bg-card p-3 shadow-sm xl:sticky xl:top-20">
+        <div className="min-w-0 overflow-hidden rounded-lg border border-border bg-secondary/35 p-3">
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <span className="shrink-0">
+              <Badge tone={difficultyMeta[primaryPersona.difficulty].tone}>
+                {personas.length > 1 ? 'Multi' : difficultyMeta[primaryPersona.difficulty].label}
+              </Badge>
+            </span>
+            <span className="min-w-0 truncate text-right text-xs font-semibold text-primary">Trust 64%</span>
           </div>
           <h2 className="mt-2 truncate text-sm font-semibold text-foreground">{sessionTitle}</h2>
           <p className="mt-1 truncate text-xs text-muted-foreground">
@@ -73,21 +115,24 @@ export function LiveSessionView({
             <p className="font-semibold text-foreground">Session goal</p>
             <p className="mt-1 max-h-9 overflow-hidden text-muted-foreground">{primaryPersona.goal}</p>
           </div>
-          <div className="grid gap-2 text-left">
-            <div className="flex items-center justify-between gap-3">
+          <div className="grid min-w-0 gap-2 text-left">
+            <div className="flex min-w-0 items-center justify-between gap-3">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Participants</p>
               <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-semibold text-secondary-foreground">
                 {personas.length}
               </span>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid min-w-0 gap-1.5">
               {personas.map((persona) => (
                 <div
                   key={persona.id}
                   className="flex min-w-0 items-center gap-1.5 rounded-full border border-border bg-background/70 py-1 pl-1 pr-2"
                 >
                   <PersonaAvatar persona={persona} className="h-5 w-5 text-[9px]" />
-                  <p className="max-w-[78px] truncate text-[11px] font-semibold text-foreground">{persona.name}</p>
+                  <div className="min-w-0">
+                    <p className="truncate text-[11px] font-semibold text-foreground">{persona.name}</p>
+                    <p className="truncate text-[10px] text-muted-foreground">{persona.subtitle}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -150,13 +195,20 @@ export function LiveSessionView({
                 className="min-h-20 w-full resize-none bg-transparent text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground"
                 placeholder="Type your response instead..."
                 defaultValue="ผมจะวัดจาก completion rate ของ onboarding และ score เฉลี่ยหลัง review ครั้งที่ 1-3 ครับ"
+                onChange={() => trackResponseLatency('start_typing')}
               />
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <Button type="button" variant="secondary" className="justify-center sm:w-auto" aria-label="Push to talk">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="justify-center sm:w-auto"
+                  aria-label="Push to talk"
+                  onClick={() => trackResponseLatency('push_to_talk')}
+                >
                   <FiMic className="h-4 w-4" />
                   Push to talk
                 </Button>
-                <Button type="button" className="justify-center sm:w-auto">
+                <Button type="button" className="justify-center sm:w-auto" onClick={() => trackResponseLatency('send_text')}>
                   <FiSend className="h-4 w-4" />
                   Send
                 </Button>

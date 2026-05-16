@@ -37,6 +37,8 @@ erDiagram
     PLAYBOOK_MESSAGES }o--o{ PLAYBOOK_SECTIONS : cites
 
     VOICE_SESSIONS ||--o{ VOICE_TURNS : has
+    VOICE_SESSIONS ||--o{ VOICE_RESPONSE_LATENCY_EVENTS : tracks
+    VOICE_TURNS ||--o{ VOICE_RESPONSE_LATENCY_EVENTS : prompts
     VOICE_SESSIONS ||--o{ TRAINING_RESULTS : summarizes
     AUDIO_SUBMISSIONS ||--o{ TRAINING_RESULTS : may_create
 
@@ -315,6 +317,16 @@ erDiagram
         datetime started_at
     }
 
+    VOICE_RESPONSE_LATENCY_EVENTS {
+        string id PK
+        string session_id FK
+        string ai_turn_id FK
+        string user_id FK
+        string action
+        int latency_ms
+        datetime captured_at
+    }
+
     TRAINING_RESULTS {
         string id PK
         string user_id FK
@@ -377,6 +389,7 @@ erDiagram
 - ถ้า ASR ถอดผิด ผู้ใช้แก้ utterance ได้โดยเก็บข้อความที่แก้ใน `transcript_utterances.edited_text` พร้อม `edited_by_user_id` และ `edited_at`; ห้ามทับ raw ASR `text`
 - training rubric ใช้ `scorecards` เดิมโดยกำหนด `scorecards.type = training_rubric` เพื่อไม่แยก rubric engine ซ้ำจาก Quality Review
 - `training_results` เชื่อมได้ทั้ง `voice_sessions`, `audio_submissions`, `recording_review_batches` และ `recording_review_attempts` เพราะ training มีทั้ง live voice Senario และ recording review
+- `voice_response_latency_events` เก็บ hidden analytics ของ Senario โดยวัดจากจังหวะ AI/persona ตอบกลับจน user เริ่มพิมพ์, กด push-to-talk หรือส่งข้อความ; ไม่แสดงใน session UI แต่ใช้ aggregate เพื่อ coaching และ confidence analysis
 - `playbooks` และ `playbook_sections` เป็น source หลักของ Playbook MVP แทน raw document/chunk dump
 - `playbook_rag_indexes` เก็บ mapping ระหว่าง approved source ใน SaleSync กับ external/local RAG provider เช่น Kotaemon/LEANN เพื่อให้ citation ย้อนกลับมาที่ Playbook Section ได้
 - `playbook_chat_sessions` เก็บ session ของหน้า Ask เพื่อให้ chat ต่อเนื่อง, list session และวัด unanswered/abstain rate ได้

@@ -110,6 +110,7 @@ tests/
 | `playbook_messages` | id, session_id, user_id, question, answer, citations_json, abstained, feedback, created_at |
 | `voice_sessions` | id, user_id, persona, scenario, status, started_at, ended_at |
 | `voice_turns` | id, session_id, speaker, text, audio_uri, started_at |
+| `voice_response_latency_events` | id, session_id, ai_turn_id, user_id, action, latency_ms, captured_at |
 | `training_results` | id, user_id, session_id, submission_id, recording_review_batch_id, recording_review_attempt_id, type, score, summary_json |
 | `onboarding_paths` | id, title, version, status |
 | `onboarding_modules` | id, path_id, title, type, required_score |
@@ -160,6 +161,7 @@ Endpoint: `/ws/voice-sessions`
 |---|---|---|
 | client to server | `session.start` | persona, scenario, product, language |
 | client to server | `audio.chunk` | binary audio chunk or base64 chunk metadata |
+| client to server | `response_latency.recorded` | session_id, ai_turn_id/message_key, action, latency_ms, captured_at |
 | client to server | `session.end` | reason |
 | server to client | `session.ready` | session_id |
 | server to client | `asr.partial` | text, confidence |
@@ -168,6 +170,8 @@ Endpoint: `/ws/voice-sessions`
 | server to client | `tts.audio` | turn_id, audio_url or audio chunk |
 | server to client | `session.summary` | score, feedback, next_steps |
 | server to client | `error` | code, message, retryable |
+
+`response_latency.recorded` เป็น hidden analytics event ของ Senario session ไม่ต้องแสดงใน UI ผู้ใช้ โดยวัดเวลาตั้งแต่ AI/persona response ถูกส่งถึง frontend จน user เริ่มพิมพ์, กด push-to-talk หรือกดส่งข้อความ ใช้เพื่อวิเคราะห์ hesitation, confidence และ coaching opportunity หลัง session
 
 ## 8. Processing Flow: Quality Review Batch
 
