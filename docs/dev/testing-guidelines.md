@@ -118,6 +118,13 @@ test_{function_or_use_case}_when_{condition}_should_{expected}
 | `POST /playbook-indexes/sync` | knowledge_page sync, playbook_section sync, force reindex, invalid provider |
 | `GET /playbook-indexes/status` | BM25 ready, Kotaemon/LEANN ready, degraded provider status |
 | `POST /playbook-search` | BM25 result, Kotaemon/LEANN result, hybrid result, citation maps to Knowledge page, expired source filtered |
+| `GET /settings/security` | admin success, sales forbidden, includes session/audit/role policy |
+| `PUT /settings/security` | admin update, invalid timeout, invalid password length, audit log created |
+| `GET /settings/knowledge-sync` | admin success, provider status, latest jobs, sales forbidden |
+| `PUT /settings/knowledge-sync` | update provider policy, invalid provider, invalid endpoint, audit log created |
+| `POST /settings/knowledge-sync/run` | manual sync success, provider failure, draft source rejected, mapping persisted |
+| `GET /settings/notifications` | admin success, rules/channels/delivery policy, sales forbidden |
+| `PUT /settings/notifications` | update rule, invalid channel, invalid webhook, audit log created |
 | `GET /onboarding/tracks` | sales sees assigned tracks, manager sees team tracks, cross-team hidden, locked prerequisite state |
 | `GET /onboarding/tracks/:id` | track detail, topic ordering, badge rule, prerequisite progress, forbidden track |
 | `PUT /onboarding/tracks/:id` | update topic order, prerequisite tracks, invalid source ref, prerequisite cycle rejected, forbidden sales role |

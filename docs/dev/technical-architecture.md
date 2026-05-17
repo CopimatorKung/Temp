@@ -261,6 +261,13 @@ tests/
 | `POST` | `/onboarding/track-topics/:topicId/complete` | mark topic completed after validation |
 | `POST` | `/onboarding/senario-completions` | sync completed Senario session into linked track topic |
 | `GET` | `/onboarding/badges` | list badge catalog and earned badges |
+| `GET` | `/settings/security` | get session, lockout, password and audit policy |
+| `PUT` | `/settings/security` | update security policy; admin only and audited |
+| `GET` | `/settings/knowledge-sync` | get BM25/Kotaemon/LEANN provider config and latest sync jobs |
+| `PUT` | `/settings/knowledge-sync` | update retrieval provider policy and sync trigger |
+| `POST` | `/settings/knowledge-sync/run` | trigger manual Knowledge index sync |
+| `GET` | `/settings/notifications` | get notification channels, event rules and delivery policy |
+| `PUT` | `/settings/notifications` | update notification rules and delivery policy |
 | `GET` | `/settings/track-categories` | list onboarding track categories with assigned track summary |
 | `POST` | `/settings/track-categories` | create track category |
 | `PUT` | `/settings/track-categories/:id` | update track category |

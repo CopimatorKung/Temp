@@ -3,16 +3,23 @@ import {
   FiAlertCircle,
   FiArrowLeft,
   FiBarChart2,
+  FiCheck,
   FiClipboard,
   FiDownload,
+  FiEdit2,
   FiFileText,
   FiLayers,
   FiMic,
+  FiMoreVertical,
+  FiPause,
   FiPlus,
   FiPlay,
-  FiTrendingUp,
   FiRefreshCw,
+  FiSearch,
+  FiTrash2,
+  FiTrendingUp,
   FiUploadCloud,
+  FiVolume2,
   FiX,
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -75,6 +82,14 @@ type BatchFile = {
   sourceType: 'audio' | 'document';
   status: BatchFileStatus;
   score?: number;
+};
+
+type QualityTranscriptSegment = {
+  id: number;
+  start: string;
+  end: string;
+  speaker: 'Sales' | 'Customer';
+  text: string;
 };
 
 type ReviewBatch = {
@@ -187,6 +202,60 @@ export function AudioQualityReviewPage() {
     if (files[0]) {
       setSelectedFileId(files[0].id);
     }
+  };
+
+  const deleteFileFromBatch = (batchId: string, fileId: string) => {
+    setBatches((current) =>
+      current.map((batch) => {
+        if (batch.id !== batchId) return batch;
+        const files = batch.files.filter((file) => file.id !== fileId);
+        return {
+          ...batch,
+          status: files.some((file) => file.status !== 'scored') ? 'queued' : 'completed',
+          files,
+        };
+      }),
+    );
+
+    if (selectedFileId === fileId) {
+      const nextFile = batches.find((batch) => batch.id === batchId)?.files.find((file) => file.id !== fileId);
+      setSelectedFileId(nextFile?.id);
+    }
+  };
+
+  const reEvaluateFile = async (batchId: string, fileId: string) => {
+    if (runningBatchId) return;
+    setBatches((current) =>
+      current.map((batch) =>
+        batch.id === batchId
+          ? {
+              ...batch,
+              status: 'processing',
+              files: batch.files.map((file) => (file.id === fileId ? { ...file, status: 'processing' } : file)),
+            }
+          : batch,
+      ),
+    );
+    await sleep(600);
+    setBatches((current) =>
+      current.map((batch) =>
+        batch.id === batchId
+          ? {
+              ...batch,
+              status: batch.files.every((file) => file.id === fileId || file.status === 'scored') ? 'completed' : 'queued',
+              files: batch.files.map((file) =>
+                file.id === fileId
+                  ? {
+                      ...file,
+                      status: 'scored',
+                      score: file.score ? Math.min(96, file.score + 4) : 72,
+                    }
+                  : file,
+              ),
+            }
+          : batch,
+      ),
+    );
   };
 
   const runBatch = async (batchId: string) => {
@@ -303,6 +372,8 @@ export function AudioQualityReviewPage() {
                 onBack={() => setSelectedBatchId(undefined)}
                 onRun={(batchId) => void runBatch(batchId)}
                 onUploadFiles={uploadFilesToBatch}
+                onReEvaluateFile={(batchId, fileId) => void reEvaluateFile(batchId, fileId)}
+                onDeleteFile={deleteFileFromBatch}
                 onSelectFile={setSelectedFileId}
                 selectedEvidenceItemId={selectedEvidenceItemId}
                 onSelectEvidenceItem={selectEvidenceItem}
@@ -582,6 +653,8 @@ function BatchDetail({
   onBack,
   onRun,
   onUploadFiles,
+  onReEvaluateFile,
+  onDeleteFile,
   onSelectFile,
   selectedEvidenceItemId,
   onSelectEvidenceItem,
@@ -593,6 +666,8 @@ function BatchDetail({
   onBack: () => void;
   onRun: (batchId: string) => void;
   onUploadFiles: (batchId: string, files: BatchFile[]) => void;
+  onReEvaluateFile: (batchId: string, fileId: string) => void;
+  onDeleteFile: (batchId: string, fileId: string) => void;
   onSelectFile: (fileId: string) => void;
   selectedEvidenceItemId?: string;
   onSelectEvidenceItem: (itemId: string) => void;
@@ -602,6 +677,14 @@ function BatchDetail({
   const isRunning = runningBatchId === batch.id;
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reviewFile, setReviewFile] = useState<BatchFile | null>(null);
+
+  const openFile = (file: BatchFile) => {
+    onSelectFile(file.id);
+    if (file.sourceType === 'audio' && file.status === 'scored') {
+      setReviewFile(file);
+    }
+  };
 
   return (
     <div className="grid gap-5">
@@ -654,6 +737,7 @@ function BatchDetail({
                       <th className="px-4 py-3 font-semibold">Type</th>
                       <th className="px-4 py-3 font-semibold">Status</th>
                       <th className="px-4 py-3 font-semibold">Score</th>
+                      <th className="px-4 py-3 text-right font-semibold">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -664,7 +748,7 @@ function BatchDetail({
                           'cursor-pointer border-t border-border bg-card transition hover:bg-muted',
                           selectedFile?.id === file.id ? 'bg-primary/5' : '',
                         ].join(' ')}
-                        onClick={() => onSelectFile(file.id)}
+                        onClick={() => openFile(file)}
                       >
                         <td className="px-4 py-4 font-medium">{file.name}</td>
                         <td className="px-4 py-4 text-muted-foreground">{file.sourceType}</td>
@@ -674,6 +758,13 @@ function BatchDetail({
                           </Badge>
                         </td>
                         <td className="px-4 py-4 font-semibold">{file.score ? `${file.score}/100` : '-'}</td>
+                        <td className="px-4 py-4 text-right" onClick={(event) => event.stopPropagation()}>
+                          <QualityFileActionMenu
+                            file={file}
+                            onReEvaluate={() => onReEvaluateFile(batch.id, file.id)}
+                            onDelete={() => onDeleteFile(batch.id, file.id)}
+                          />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -734,8 +825,279 @@ function BatchDetail({
           onClose={() => setReportModalOpen(false)}
         />
       )}
+
+      {reviewFile && <QualityFileAsrReviewModal file={reviewFile} onClose={() => setReviewFile(null)} />}
     </div>
   );
+}
+
+function QualityFileActionMenu({
+  file,
+  onReEvaluate,
+  onDelete,
+}: {
+  file: BatchFile;
+  onReEvaluate: () => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative inline-flex">
+      <button
+        type="button"
+        aria-label={`Open actions for ${file.name}`}
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <FiMoreVertical className="h-4 w-4" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-9 z-20 w-40 overflow-hidden rounded-lg border border-border bg-card p-1 text-left shadow-panel">
+          <button
+            type="button"
+            onClick={() => {
+              onReEvaluate();
+              setOpen(false);
+            }}
+            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+          >
+            <FiRefreshCw className="h-4 w-4 text-primary" />
+            Re-evaluate
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onDelete();
+              setOpen(false);
+            }}
+            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-destructive transition hover:bg-destructive/10"
+          >
+            <FiTrash2 className="h-4 w-4" />
+            Delete
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function QualityFileAsrReviewModal({ file, onClose }: { file: BatchFile; onClose: () => void }) {
+  const [playing, setPlaying] = useState(false);
+  const [transcript, setTranscript] = useState(() =>
+    buildQualityFileTranscript(file).map((segment) => ({
+      ...segment,
+      originalText: segment.text,
+    })),
+  );
+
+  const updateSegmentText = (segmentId: number, text: string) => {
+    setTranscript((segments) => segments.map((segment) => (segment.id === segmentId ? { ...segment, text } : segment)));
+  };
+
+  return (
+    <Portal>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/28 p-3 backdrop-blur-sm sm:p-4" role="presentation" onMouseDown={onClose}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="quality-asr-review-title"
+          className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border bg-card shadow-panel"
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-5">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">ASR Review</p>
+              <h2 id="quality-asr-review-title" className="mt-1 truncate text-xl font-semibold">
+                {file.name}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Quality batch file · Botnoi ASR mock · score {file.score ? `${file.score}/100` : '-'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              aria-label="Close ASR review"
+            >
+              <FiX className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+            <div className="grid gap-4">
+              <div className="rounded-lg border border-border bg-white p-4">
+                <div className="grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setPlaying((value) => !value)}
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      aria-label={playing ? 'Pause audio' : 'Play audio'}
+                    >
+                      {playing ? <FiPause className="h-5 w-5" /> : <FiPlay className="h-5 w-5" />}
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-secondary text-secondary-foreground transition hover:bg-secondary/80"
+                      aria-label="Volume"
+                    >
+                      <FiVolume2 className="h-5 w-5" />
+                    </button>
+                    <Badge tone={playing ? 'success' : 'muted'}>{playing ? 'playing' : 'paused'}</Badge>
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="mb-2 flex items-center justify-center gap-1 text-sm font-semibold text-primary">
+                      <span>04:25</span>
+                      <span className="text-muted-foreground">/</span>
+                      <span className="text-muted-foreground">12:48</span>
+                    </div>
+                    <div className="relative h-24 rounded-lg bg-muted/70 px-3 py-3">
+                      <div className="absolute left-[32%] top-0 h-full w-0.5 bg-primary">
+                        <span className="absolute -top-1 left-1/2 h-3 w-3 -translate-x-1/2 rounded-full bg-primary" />
+                      </div>
+                      <QualityWaveformLane speaker="Sales" color="primary" />
+                      <QualityWaveformLane speaker="Customer" color="warning" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex h-11 w-full max-w-md items-center gap-2 rounded-lg border border-input bg-card px-3 text-sm text-muted-foreground">
+                <FiSearch className="h-4 w-4" />
+                <span className="truncate">Search transcript</span>
+              </div>
+
+              <div className="grid gap-3">
+                {transcript.map((segment) => {
+                  const edited = segment.text.trim() !== segment.originalText.trim();
+
+                  return (
+                    <div
+                      key={segment.id}
+                      className={[
+                        'rounded-lg border p-4 transition',
+                        edited ? 'border-warning/50 bg-warning/10' : 'border-border bg-card',
+                      ].join(' ')}
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className={['font-semibold', segment.speaker === 'Sales' ? 'text-primary' : 'text-warning'].join(' ')}>
+                              {segment.speaker}
+                            </p>
+                            {edited && (
+                              <Badge tone="warning">
+                                <FiEdit2 className="mr-1 h-3.5 w-3.5" />
+                                edited
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="mt-1 font-mono text-xs text-muted-foreground">
+                            {segment.id}
+                            <br />
+                            {segment.start} --&gt; {segment.end}
+                          </p>
+                        </div>
+                        <Button type="button" variant="secondary" className="h-9 px-3">
+                          <FiPlay className="h-4 w-4" />
+                          Play segment
+                        </Button>
+                      </div>
+                      <label className="mt-3 block text-sm font-semibold text-foreground" htmlFor={`quality-asr-segment-${file.id}-${segment.id}`}>
+                        ASR text
+                      </label>
+                      <textarea
+                        id={`quality-asr-segment-${file.id}-${segment.id}`}
+                        value={segment.text}
+                        onChange={(event) => updateSegmentText(segment.id, event.target.value)}
+                        className="mt-2 min-h-[88px] w-full resize-y rounded-lg border border-input bg-card px-3 py-2 text-base leading-7 text-foreground outline-none transition placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+                        aria-label={`${segment.speaker} transcript segment ${segment.id}`}
+                      />
+                      {edited && <p className="mt-2 text-xs font-medium text-warning">ข้อความนี้ถูกแก้จาก ASR เดิม</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Portal>
+  );
+}
+
+function QualityWaveformLane({ speaker, color }: { speaker: string; color: 'primary' | 'warning' }) {
+  const bars = color === 'primary' ? [9, 16, 26, 18, 10, 22, 30, 12, 18] : [12, 24, 10, 28, 14, 18, 26, 12, 24];
+  const barClass = color === 'primary' ? 'bg-primary' : 'bg-warning';
+
+  return (
+    <div className="grid grid-cols-[72px_minmax(0,1fr)] items-center gap-3 first:mb-3">
+      <p className={['truncate text-xs font-semibold', color === 'primary' ? 'text-primary' : 'text-warning'].join(' ')}>{speaker}</p>
+      <div className="flex h-5 min-w-0 items-center gap-2 rounded-full bg-card/80 px-2">
+        {bars.map((width, index) => (
+          <span key={`${speaker}-${index}`} className={['h-2 rounded-full', barClass].join(' ')} style={{ width: `${width}%` }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function buildQualityFileTranscript(file: BatchFile): QualityTranscriptSegment[] {
+  const baseTranscript: QualityTranscriptSegment[] = [
+    {
+      id: 1,
+      start: '00:00:01,000',
+      end: '00:00:07,800',
+      speaker: 'Sales',
+      text: 'สวัสดีครับ ผมพิมจาก SaleSync โทรมาเรื่องโปร Q2 สำหรับร้านค้า SME ไม่ทราบว่าสะดวกคุยสั้น ๆ ไหมครับ',
+    },
+    {
+      id: 2,
+      start: '00:00:08,200',
+      end: '00:00:14,600',
+      speaker: 'Customer',
+      text: 'ได้ครับ แต่ผมอยากรู้ก่อนว่าโปรนี้ใช้กับร้านค้ารายย่อยแบบผมได้ไหม',
+    },
+    {
+      id: 3,
+      start: '00:00:15,000',
+      end: '00:00:27,400',
+      speaker: 'Sales',
+      text: 'ใช้ได้ถ้าเข้าเกณฑ์ SME และเปิดบัญชีใหม่ตามเงื่อนไขแคมเปญ ต้องแจ้งวันหมดอายุ ยอดขั้นต่ำ และข้อจำกัดสิทธิ์ให้ครบครับ',
+    },
+    {
+      id: 4,
+      start: '00:00:28,000',
+      end: '00:00:39,300',
+      speaker: 'Customer',
+      text: 'แล้วถ้าผมใช้โปรนี้จะช่วยเพิ่มยอดขายได้แน่นอนไหม',
+    },
+    {
+      id: 5,
+      start: '00:00:40,000',
+      end: '00:00:55,000',
+      speaker: 'Sales',
+      text: 'ผมไม่สามารถรับประกันยอดขายได้ครับ แต่ช่วยลดต้นทุนช่วงเริ่มต้นได้ เดี๋ยวผมขอถาม pain point ปัจจุบันก่อนว่าเสียต้นทุนสูงจากส่วนไหน',
+    },
+  ];
+
+  if (file.score && file.score < 70) {
+    return baseTranscript.map((segment) =>
+      segment.id === 5
+        ? {
+            ...segment,
+            text: 'โปรนี้ช่วยลดต้นทุนช่วงเริ่มต้นได้ครับ เดี๋ยวผมส่งรายละเอียดให้ดูเพิ่มเติม',
+          }
+        : segment,
+    );
+  }
+
+  return baseTranscript;
 }
 
 function QualityBatchReportModal({
@@ -753,7 +1115,29 @@ function QualityBatchReportModal({
     : 0;
   const queuedFiles = batch.files.filter((file) => file.status === 'queued').length;
   const failedFiles = batch.files.filter((file) => file.status === 'failed').length;
-  const progress = Math.round((completedFiles / batch.files.length) * 100);
+  const progress = Math.round((completedFiles / Math.max(batch.files.length, 1)) * 100);
+  const [exportFormat, setExportFormat] = useState<'pdf' | 'md' | 'csv'>('pdf');
+  const exportOptions = [
+    {
+      id: 'pdf' as const,
+      label: 'PDF report',
+      detail: 'executive summary, evidence, recommendation',
+      fileName: `quality-report-${batch.id}.pdf`,
+    },
+    {
+      id: 'md' as const,
+      label: 'Markdown handoff',
+      detail: 'editable notes for sales ops or playbook owner',
+      fileName: `quality-report-${batch.id}.md`,
+    },
+    {
+      id: 'csv' as const,
+      label: 'CSV score table',
+      detail: 'file-level scores for spreadsheet analysis',
+      fileName: `quality-report-${batch.id}.csv`,
+    },
+  ];
+  const selectedExport = exportOptions.find((option) => option.id === exportFormat) ?? exportOptions[0];
 
   return (
     <Portal>
@@ -834,15 +1218,43 @@ function QualityBatchReportModal({
                 <div className="rounded-lg border border-border bg-white p-4">
                   <p className="text-xs font-semibold uppercase text-muted-foreground">Export format</p>
                   <div className="mt-3 grid gap-2">
-                    <Badge tone="muted">PDF report</Badge>
-                    <Badge tone="muted">CSV score table</Badge>
-                    <Badge tone="muted">JSON evidence data</Badge>
+                    {exportOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setExportFormat(option.id)}
+                        className={[
+                          'rounded-lg border p-3 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                          exportFormat === option.id ? 'border-primary bg-primary/10 text-foreground' : 'border-border bg-card hover:bg-secondary',
+                        ].join(' ')}
+                      >
+                        <span className="flex items-center justify-between gap-3">
+                          <span className="font-semibold">{option.label}</span>
+                          {exportFormat === option.id ? <FiCheck className="h-4 w-4 text-primary" /> : null}
+                        </span>
+                        <span className="mt-1 block text-xs leading-5 text-muted-foreground">{option.detail}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div className="rounded-lg border border-border bg-white p-4">
                   <p className="text-xs font-semibold uppercase text-muted-foreground">Mock destination</p>
-                  <p className="mt-2 text-sm font-semibold">quality-report-{batch.id}.pdf</p>
-                  <p className="mt-1 text-xs text-muted-foreground">พร้อม export เมื่อ backend report worker พร้อมใช้งาน</p>
+                  <p className="mt-2 break-all text-sm font-semibold">{selectedExport.fileName}</p>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    {exportFormat === 'pdf'
+                      ? 'เหมาะสำหรับส่งให้ manager หรือ stakeholder อ่านภาพรวม'
+                      : exportFormat === 'md'
+                        ? 'เหมาะสำหรับส่งต่อให้ทีม sales ops/playbook owner แก้ไขต่อ'
+                        : 'เหมาะสำหรับเปิดต่อใน spreadsheet หรือ BI'}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-border bg-white p-4">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Continue working</p>
+                  <div className="mt-3 grid gap-2 text-xs text-muted-foreground">
+                    <div className="rounded-lg bg-muted p-3">Attach report to coaching task</div>
+                    <div className="rounded-lg bg-muted p-3">Send Markdown to Playbook update backlog</div>
+                    <div className="rounded-lg bg-muted p-3">Export CSV for team score review</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -884,9 +1296,13 @@ function QualityBatchReportModal({
             <Button variant="secondary" onClick={onClose}>
               Cancel
             </Button>
+            <Button variant="secondary">
+              <FiFileText className="h-4 w-4" />
+              Save as {exportFormat.toUpperCase()}
+            </Button>
             <Button>
               <FiDownload className="h-4 w-4" />
-              Export report
+              Export {exportFormat.toUpperCase()}
             </Button>
           </div>
         </div>
@@ -1078,7 +1494,7 @@ function BatchOverviewPanel({
   completedFiles: number;
   selectedFile?: BatchFile;
 }) {
-  const progress = Math.round((completedFiles / batch.files.length) * 100);
+  const progress = Math.round((completedFiles / Math.max(batch.files.length, 1)) * 100);
   const scoredFiles = batch.files.filter((file) => file.status === 'scored' && typeof file.score === 'number');
   const averageScore = scoredFiles.length > 0
     ? Math.round(scoredFiles.reduce((sum, file) => sum + (file.score ?? 0), 0) / scoredFiles.length)

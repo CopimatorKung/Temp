@@ -1093,15 +1093,15 @@ function AttemptReviewModal({ attempt, onClose }: { attempt: Attempt; onClose: (
 
   return (
     <Portal>
-      <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/28 p-3 backdrop-blur-sm sm:p-4" role="presentation" onMouseDown={onClose}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/28 p-3 backdrop-blur-sm sm:p-4" role="presentation" onMouseDown={onClose}>
         <div
           role="dialog"
           aria-modal="true"
           aria-labelledby="attempt-review-title"
-          className="grid max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-lg border border-border bg-card shadow-panel"
+          className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-lg border border-border bg-card shadow-panel"
           onMouseDown={(event) => event.stopPropagation()}
         >
-          <div className="flex items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-5">
+          <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-5">
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">ASR Review</p>
               <h2 id="attempt-review-title" className="mt-1 truncate text-xl font-semibold">
@@ -1121,7 +1121,7 @@ function AttemptReviewModal({ attempt, onClose }: { attempt: Attempt; onClose: (
             </button>
           </div>
 
-          <div className="grid min-h-0 overflow-y-auto p-4 sm:p-5">
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
             <div className="grid gap-4">
               <div className="rounded-lg border border-border bg-white p-4">
                 <div className="grid gap-4 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-center">

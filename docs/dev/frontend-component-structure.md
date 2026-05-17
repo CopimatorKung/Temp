@@ -119,6 +119,10 @@ Suggested semantic token names:
     /rules
     /settings
     /settings/theme
+    /settings/users-roles
+    /settings/security
+    /settings/knowledge-sync
+    /settings/notifications
     /settings/track-categories
     /settings/solutions
 ```

@@ -1507,6 +1507,177 @@ Query params:
 | `level` | `beginner` | `beginner`, `intermediate`, `advanced` |
 | `solutionKey` | `Chatbot` | default solution catalog เช่น Chatbot, Voicebot, Digital Human, CMS, DocSearch |
 
+### `GET /settings/security`
+
+```json
+{
+  "data": {
+    "sessionTtlMinutes": 480,
+    "idleTimeoutMinutes": 30,
+    "failedLoginLockoutAttempts": 5,
+    "passwordMinLength": 12,
+    "auditRetentionDays": 180,
+    "roles": [
+      {
+        "role": "sales",
+        "scope": "own records only",
+        "permissions": ["quality.submit", "training.practice", "onboarding.view"]
+      },
+      {
+        "role": "manager",
+        "scope": "team scope",
+        "permissions": ["quality.review", "training.review", "onboarding.manage"]
+      },
+      {
+        "role": "admin",
+        "scope": "workspace scope",
+        "permissions": ["settings.manage", "playbook.manage", "user.manage"]
+      }
+    ],
+    "updatedAt": "2026-05-17T10:00:00+07:00"
+  }
+}
+```
+
+### `PUT /settings/security`
+
+```json
+{
+  "sessionTtlMinutes": 480,
+  "idleTimeoutMinutes": 30,
+  "failedLoginLockoutAttempts": 5,
+  "passwordMinLength": 12,
+  "auditRetentionDays": 180
+}
+```
+
+Rules:
+
+- admin only
+- every update must write `audit_logs` with previous and next policy
+- backend must enforce these values in `POST /auth/login`, `GET /auth/me`, REST permission guard and WSS session start
+
+### `GET /settings/knowledge-sync`
+
+```json
+{
+  "data": {
+    "defaultRetrievalProvider": "hybrid",
+    "syncTrigger": "publish",
+    "kotaemonEndpoint": "http://kotaemon.local:7860",
+    "leannIndexName": "pitchsmith-knowledge-local",
+    "providers": [
+      { "provider": "turso_bm25", "status": "ready", "indexedSources": 42, "lastLatencyMs": 28, "lastSyncAt": "2026-05-17T09:10:00+07:00" },
+      { "provider": "kotaemon", "status": "ready", "indexedSources": 42, "lastLatencyMs": 180, "lastSyncAt": "2026-05-17T09:05:00+07:00" },
+      { "provider": "leann", "status": "ready", "indexedSources": 42, "lastLatencyMs": 64, "lastSyncAt": "2026-05-17T09:05:00+07:00" }
+    ],
+    "recentJobs": [
+      {
+        "id": "sync-001",
+        "sourceTitle": "Q2 SME Revenue Playbook",
+        "provider": "hybrid",
+        "status": "completed",
+        "changedSources": 4,
+        "finishedAt": "2026-05-17T09:05:00+07:00"
+      }
+    ]
+  }
+}
+```
+
+### `PUT /settings/knowledge-sync`
+
+```json
+{
+  "defaultRetrievalProvider": "hybrid",
+  "syncTrigger": "publish",
+  "kotaemonEndpoint": "http://kotaemon.local:7860",
+  "leannIndexName": "pitchsmith-knowledge-local"
+}
+```
+
+### `POST /settings/knowledge-sync/run`
+
+```json
+{
+  "provider": "hybrid",
+  "sourceType": "knowledge_page",
+  "sourceIds": ["kpage_q2_promo_sme"],
+  "forceReindex": false
+}
+```
+
+Rules:
+
+- frontend never calls Kotaemon or LEANN directly
+- backend calls `POST /playbook-indexes/sync` or internal worker with this saved policy
+- sync result must map `externalDocumentId` and `externalChunkId` back to `playbook_rag_indexes`
+
+### `GET /settings/notifications`
+
+```json
+{
+  "data": {
+    "deliveryPolicy": {
+      "defaultDigest": "5m",
+      "quietHours": "20:00-08:00 Asia/Bangkok",
+      "retryAttempts": 3,
+      "webhookUrl": "https://example.com/pitchsmith/webhook"
+    },
+    "channels": [
+      { "key": "in_app", "label": "In-app", "status": "enabled", "target": "all users", "latency": "instant" },
+      { "key": "email", "label": "Email", "status": "enabled", "target": "manager/admin", "latency": "5 min digest" },
+      { "key": "webhook", "label": "Webhook", "status": "disabled", "target": "external tools", "latency": "near real-time" }
+    ],
+    "rules": [
+      {
+        "event": "quality_review.needs_manager",
+        "label": "Quality review needs manager",
+        "audience": "manager",
+        "channels": ["in_app", "email"],
+        "severity": "high",
+        "status": "enabled"
+      },
+      {
+        "event": "knowledge_sync.failed",
+        "label": "Knowledge sync failed",
+        "audience": "admin",
+        "channels": ["in_app", "email"],
+        "severity": "critical",
+        "status": "enabled"
+      }
+    ]
+  }
+}
+```
+
+### `PUT /settings/notifications`
+
+```json
+{
+  "deliveryPolicy": {
+    "defaultDigest": "5m",
+    "quietHours": "20:00-08:00 Asia/Bangkok",
+    "retryAttempts": 3,
+    "webhookUrl": "https://example.com/pitchsmith/webhook"
+  },
+  "rules": [
+    {
+      "event": "quality_review.needs_manager",
+      "channels": ["in_app", "email"],
+      "severity": "high",
+      "status": "enabled"
+    }
+  ]
+}
+```
+
+Rules:
+
+- admin only
+- notification events should be emitted by backend workflows, not frontend timers
+- update must write audit log with previous and next policy
+
 ### `GET /settings/track-categories`
 
 ```json

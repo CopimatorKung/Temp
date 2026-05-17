@@ -30,7 +30,7 @@ export function App() {
         <Route path="/training/voice-roleplay" element={<Navigate to={routes.voiceRoleplay} replace />} />
         <Route path="/playbooks" element={<Navigate to={routes.playbooks} replace />} />
         <Route path="/onboarding/me" element={<Navigate to={routes.onboardingMe} replace />} />
-        <Route path="/admin/users" element={<Navigate to={routes.settings} replace />} />
+        <Route path="/admin/users" element={<Navigate to={routes.settingsUsersRoles} replace />} />
         <Route path="/settings" element={<Navigate to={routes.settings} replace />} />
         <Route
           path="/app/*"
@@ -57,9 +57,13 @@ export function App() {
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="settings" element={<AdminUsersPage />} />
                 <Route path="settings/theme" element={<AdminUsersPage view="theme" />} />
+                <Route path="settings/users-roles" element={<AdminUsersPage view="users-roles" />} />
+                <Route path="settings/security" element={<AdminUsersPage view="security" />} />
+                <Route path="settings/knowledge-sync" element={<AdminUsersPage view="knowledge-sync" />} />
+                <Route path="settings/notifications" element={<AdminUsersPage view="notifications" />} />
                 <Route path="settings/track-categories" element={<AdminUsersPage view="track-categories" />} />
                 <Route path="settings/solutions" element={<AdminUsersPage view="solutions" />} />
-                <Route path="admin/users" element={<Navigate to={routes.settings} replace />} />
+                <Route path="admin/users" element={<AdminUsersPage view="users-roles" />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </AppShell>

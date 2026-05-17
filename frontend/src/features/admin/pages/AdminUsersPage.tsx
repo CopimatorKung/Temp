@@ -7,7 +7,7 @@ import {
   FiEdit2,
   FiLayers,
   FiLock,
-  FiMoreHorizontal,
+  FiMoreVertical,
   FiMoon,
   FiPackage,
   FiSettings,
@@ -26,7 +26,7 @@ import { Field, Input, Select } from '../../../components/ui/Field';
 import { Portal } from '../../../components/ui/Portal';
 import { applyTheme, getStoredTheme, type ThemeMode } from '../../../lib/theme';
 
-type SettingsView = 'index' | 'theme' | 'track-categories' | 'solutions';
+type SettingsView = 'index' | 'theme' | 'users-roles' | 'security' | 'knowledge-sync' | 'notifications' | 'track-categories' | 'solutions';
 
 type AdminUsersPageProps = {
   view?: SettingsView;
@@ -58,29 +58,29 @@ const settingsItems = [
     title: 'Users & Roles',
     description: 'จัดการ sales, manager, admin และ team scope',
     icon: FiUsers,
-    href: routes.settings,
-    status: 'planned',
+    href: routes.settingsUsersRoles,
+    status: 'mock',
   },
   {
     title: 'Security',
     description: 'กำหนด session, access policy และ audit behavior',
     icon: FiLock,
-    href: routes.settings,
-    status: 'planned',
+    href: routes.settingsSecurity,
+    status: 'mock',
   },
   {
     title: 'Knowledge Sync',
     description: 'ตั้งค่า Turso BM25, Kotaemon และ LEANN local index',
     icon: FiDatabase,
-    href: routes.settings,
+    href: routes.settingsKnowledgeSync,
     status: 'mock',
   },
   {
     title: 'Notifications',
     description: 'ควบคุม alert สำหรับ review, onboarding และ import jobs',
     icon: FiBell,
-    href: routes.settings,
-    status: 'planned',
+    href: routes.settingsNotifications,
+    status: 'mock',
   },
 ];
 
@@ -116,6 +116,98 @@ const managedSolutions = [
   { id: 'docsearch', name: 'DocSearch', owner: 'AI Platform', assignedTracks: [], status: 'active' },
 ];
 
+const managedUsers = [
+  {
+    id: 'user-pim',
+    name: 'Pimnara K.',
+    email: 'pim@example.com',
+    role: 'manager',
+    team: 'SME Team',
+    status: 'active',
+    lastActive: 'today 09:48',
+    badge: 'Voice Architect',
+  },
+  {
+    id: 'user-nara',
+    name: 'Nara S.',
+    email: 'nara@example.com',
+    role: 'admin',
+    team: 'Enablement Ops',
+    status: 'active',
+    lastActive: '2026-05-16',
+    badge: 'Playbook Owner',
+  },
+  {
+    id: 'user-may',
+    name: 'May T.',
+    email: 'may@example.com',
+    role: 'sales',
+    team: 'Inside Sales',
+    status: 'active',
+    lastActive: 'today 08:20',
+    badge: 'SME Ready',
+  },
+  {
+    id: 'user-korn',
+    name: 'Korn W.',
+    email: 'korn@example.com',
+    role: 'sales',
+    team: 'New Hires',
+    status: 'inactive',
+    lastActive: '2026-04-30',
+    badge: 'No badge',
+  },
+  {
+    id: 'user-beam',
+    name: 'Beam P.',
+    email: 'beam@example.com',
+    role: 'manager',
+    team: 'Enterprise Team',
+    status: 'inactive',
+    lastActive: '2026-05-01',
+    badge: 'Executive Coach',
+  },
+] as const;
+
+const securityPolicies = [
+  { label: 'Session TTL', value: '8 hours', description: 'access token/session lifetime for web app' },
+  { label: 'Idle timeout', value: '30 min', description: 'auto logout after no activity' },
+  { label: 'Password policy', value: '12 chars', description: 'minimum length with mixed character classes' },
+  { label: 'Audit retention', value: '180 days', description: 'keep admin/security audit events' },
+] as const;
+
+const accessPolicies = [
+  { role: 'sales', scope: 'own records only', permissions: ['quality.submit', 'training.practice', 'onboarding.view'] },
+  { role: 'manager', scope: 'team scope', permissions: ['quality.review', 'training.review', 'onboarding.manage'] },
+  { role: 'admin', scope: 'workspace scope', permissions: ['settings.manage', 'playbook.manage', 'user.manage'] },
+] as const;
+
+const syncProviders = [
+  { provider: 'Turso BM25', key: 'turso_bm25', status: 'ready', sources: 42, latency: '28 ms', lastSync: 'today 09:10' },
+  { provider: 'Kotaemon', key: 'kotaemon', status: 'ready', sources: 42, latency: '180 ms', lastSync: 'today 09:05' },
+  { provider: 'LEANN', key: 'leann', status: 'ready', sources: 42, latency: '64 ms', lastSync: 'today 09:05' },
+] as const;
+
+const syncJobs = [
+  { id: 'sync-001', source: 'Q2 SME Revenue Playbook', provider: 'hybrid', status: 'completed', changed: 4, finishedAt: 'today 09:05' },
+  { id: 'sync-002', source: 'Competitor Handling', provider: 'kotaemon_leann', status: 'completed', changed: 2, finishedAt: '2026-05-16' },
+  { id: 'sync-003', source: 'Pricing matrix import', provider: 'turso_bm25', status: 'queued', changed: 1, finishedAt: 'pending' },
+] as const;
+
+const notificationChannels = [
+  { channel: 'In-app', key: 'in_app', status: 'enabled', target: 'all users', latency: 'instant' },
+  { channel: 'Email', key: 'email', status: 'enabled', target: 'manager/admin', latency: '5 min digest' },
+  { channel: 'Webhook', key: 'webhook', status: 'disabled', target: 'external tools', latency: 'near real-time' },
+] as const;
+
+const notificationRules = [
+  { event: 'Quality review needs manager', audience: 'manager', channel: 'In-app + Email', severity: 'high', status: 'enabled' },
+  { event: 'Recording batch completed', audience: 'sales', channel: 'In-app', severity: 'medium', status: 'enabled' },
+  { event: 'Onboarding track unlocked', audience: 'sales + manager', channel: 'In-app', severity: 'medium', status: 'enabled' },
+  { event: 'Knowledge sync failed', audience: 'admin', channel: 'In-app + Email', severity: 'critical', status: 'enabled' },
+  { event: 'Playbook promotion expiring', audience: 'owner', channel: 'Email digest', severity: 'medium', status: 'enabled' },
+] as const;
+
 const themeModes = [
   {
     id: 'light',
@@ -138,6 +230,22 @@ export function AdminUsersPage({ view = 'index' }: AdminUsersPageProps) {
     return <ThemeSettingsPage />;
   }
 
+  if (view === 'users-roles') {
+    return <UsersRolesSettingsPage />;
+  }
+
+  if (view === 'security') {
+    return <SecuritySettingsPage />;
+  }
+
+  if (view === 'knowledge-sync') {
+    return <KnowledgeSyncSettingsPage />;
+  }
+
+  if (view === 'notifications') {
+    return <NotificationsSettingsPage />;
+  }
+
   if (view === 'track-categories') {
     return <TrackCategoriesSettingsPage />;
   }
@@ -147,6 +255,424 @@ export function AdminUsersPage({ view = 'index' }: AdminUsersPageProps) {
   }
 
   return <SettingsIndexPage />;
+}
+
+function UsersRolesSettingsPage() {
+  const [editingUser, setEditingUser] = useState<(typeof managedUsers)[number] | null>(null);
+  const [deletingUser, setDeletingUser] = useState<(typeof managedUsers)[number] | null>(null);
+  const activeUsers = managedUsers.filter((user) => user.status === 'active').length;
+  const inactiveUsers = managedUsers.length - activeUsers;
+
+  return (
+    <SettingsManagementPage
+      eyebrow="Settings · Users & Roles"
+      title="Users & Roles"
+      description="จัดการ user, role, team scope และ active/inactive status สำหรับ sales, manager และ admin"
+      actionLabel="New user"
+      icon={FiUsers}
+      onCreate={() => setEditingUser(managedUsers[0])}
+    >
+      <section className="grid gap-3 sm:grid-cols-3">
+        <MetricCard label="Total users" value={`${managedUsers.length}`} />
+        <MetricCard label="Active" value={`${activeUsers}`} tone="success" />
+        <MetricCard label="Inactive" value={`${inactiveUsers}`} tone="muted" />
+      </section>
+
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <CardTitle>User management</CardTitle>
+          <p className="mt-1 text-sm text-muted-foreground">ตาราง user detail สำหรับ role, team scope และ status พร้อม row action edit/delete</p>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full min-w-[980px] border-collapse text-left text-sm">
+              <thead className="bg-muted text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3">User</th>
+                  <th className="px-4 py-3">Role</th>
+                  <th className="px-4 py-3">Team scope</th>
+                  <th className="px-4 py-3">Badge</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Last active</th>
+                  <th className="px-4 py-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border bg-card">
+                {managedUsers.map((user) => (
+                  <tr key={user.id}>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-primary/30 bg-primary/10 text-sm font-semibold text-primary ring-2 ring-background">
+                          {getInitials(user.name)}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate font-semibold text-foreground">{user.name}</span>
+                          <span className="mt-1 block truncate text-xs text-muted-foreground">{user.email}</span>
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge tone={user.role === 'admin' ? 'warning' : user.role === 'manager' ? 'default' : 'muted'}>{user.role}</Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{user.team}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{user.badge}</td>
+                    <td className="px-4 py-3">
+                      <Badge tone={user.status === 'active' ? 'success' : 'muted'}>{user.status}</Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{user.lastActive}</td>
+                    <td className="px-4 py-3 text-right">
+                      <RowActionMenu onEdit={() => setEditingUser(user)} onDelete={() => setDeletingUser(user)} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {editingUser && <UserEditModal user={editingUser} onClose={() => setEditingUser(null)} />}
+      {deletingUser && (
+        <ConfirmDeleteModal
+          title="Delete user?"
+          description={`ลบ user "${deletingUser.name}" ออกจาก mock settings หรือไม่ ระบบจริงควร deactivate ก่อน delete ถ้ามี audit หรือ training history`}
+          onClose={() => setDeletingUser(null)}
+        />
+      )}
+    </SettingsManagementPage>
+  );
+}
+
+function SecuritySettingsPage() {
+  return (
+    <SettingsManagementPage
+      eyebrow="Settings · Security"
+      title="Security"
+      description="กำหนด session policy, access policy และ audit behavior ที่ backend จะใช้กับ REST/WSS ทุก module"
+      actionLabel="Save policy"
+      icon={FiLock}
+      onCreate={() => undefined}
+    >
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {securityPolicies.map((policy) => (
+          <MetricCard key={policy.label} label={policy.label} value={policy.value} />
+        ))}
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <Card className="overflow-hidden">
+          <CardHeader>
+            <CardTitle>Access policy</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">role-based permission matrix สำหรับ sales, manager และ admin</p>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+                <thead className="bg-muted text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3">Role</th>
+                    <th className="px-4 py-3">Scope</th>
+                    <th className="px-4 py-3">Permissions</th>
+                    <th className="px-4 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border bg-card">
+                  {accessPolicies.map((policy) => (
+                    <tr key={policy.role}>
+                      <td className="px-4 py-3">
+                        <Badge tone={policy.role === 'admin' ? 'warning' : policy.role === 'manager' ? 'default' : 'muted'}>{policy.role}</Badge>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">{policy.scope}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1.5">
+                          {policy.permissions.map((permission) => (
+                            <Badge key={permission} tone="muted">
+                              {permission}
+                            </Badge>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge tone="success">active</Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardHeader>
+            <CardTitle>Session controls</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">mock form สำหรับ policy ที่ backend ต้อง enforce</p>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <Field label="Session TTL">
+              <Select defaultValue="8h">
+                <option value="4h">4 hours</option>
+                <option value="8h">8 hours</option>
+                <option value="24h">24 hours</option>
+              </Select>
+            </Field>
+            <Field label="Idle timeout">
+              <Select defaultValue="30m">
+                <option value="15m">15 minutes</option>
+                <option value="30m">30 minutes</option>
+                <option value="60m">60 minutes</option>
+              </Select>
+            </Field>
+            <Field label="Failed login lockout">
+              <Select defaultValue="5">
+                <option value="3">3 attempts</option>
+                <option value="5">5 attempts</option>
+                <option value="10">10 attempts</option>
+              </Select>
+            </Field>
+            <Field label="Audit retention">
+              <Input defaultValue="180 days" />
+            </Field>
+          </CardContent>
+        </Card>
+      </section>
+    </SettingsManagementPage>
+  );
+}
+
+function KnowledgeSyncSettingsPage() {
+  return (
+    <SettingsManagementPage
+      eyebrow="Settings · Knowledge Sync"
+      title="Knowledge Sync"
+      description="ตั้งค่า provider สำหรับ source-first BM25, Kotaemon RAG service และ LEANN local/private index"
+      actionLabel="Run sync"
+      icon={FiDatabase}
+      onCreate={() => undefined}
+    >
+      <section className="grid gap-3 sm:grid-cols-3">
+        <MetricCard label="Indexed sources" value="42" tone="success" />
+        <MetricCard label="Pending jobs" value="1" />
+        <MetricCard label="Failed jobs" value="0" tone="muted" />
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <Card className="overflow-hidden">
+          <CardHeader>
+            <CardTitle>Provider status</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">backend ต้อง sync Knowledge page ที่ publish เข้า BM25 และ optional Kotaemon/LEANN</p>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+                <thead className="bg-muted text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3">Provider</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Sources</th>
+                    <th className="px-4 py-3">Latency</th>
+                    <th className="px-4 py-3">Last sync</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border bg-card">
+                  {syncProviders.map((provider) => (
+                    <tr key={provider.key}>
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-foreground">{provider.provider}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{provider.key}</p>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge tone={provider.status === 'ready' ? 'success' : 'warning'}>{provider.status}</Badge>
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-foreground">{provider.sources}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{provider.latency}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{provider.lastSync}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardHeader>
+            <CardTitle>Sync policy</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">เลือก provider strategy สำหรับ Ask และ Senario preload</p>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <Field label="Default retrieval">
+              <Select defaultValue="hybrid">
+                <option value="turso_bm25">Turso BM25</option>
+                <option value="kotaemon_leann">Kotaemon + LEANN</option>
+                <option value="hybrid">Hybrid</option>
+              </Select>
+            </Field>
+            <Field label="Sync trigger">
+              <Select defaultValue="publish">
+                <option value="publish">On page publish</option>
+                <option value="manual">Manual only</option>
+                <option value="schedule">Scheduled batch</option>
+              </Select>
+            </Field>
+            <Field label="Kotaemon endpoint">
+              <Input defaultValue="http://kotaemon.local:7860" />
+            </Field>
+            <Field label="LEANN index">
+              <Input defaultValue="pitchsmith-knowledge-local" />
+            </Field>
+          </CardContent>
+        </Card>
+      </section>
+
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <CardTitle>Recent sync jobs</CardTitle>
+          <p className="mt-1 text-sm text-muted-foreground">queue/result ที่ map กลับไป `playbook_rag_indexes` สำหรับ citation</p>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto rounded-lg border border-border">
+            <table className="w-full min-w-[860px] border-collapse text-left text-sm">
+              <thead className="bg-muted text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3">Source</th>
+                  <th className="px-4 py-3">Provider</th>
+                  <th className="px-4 py-3">Changed</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Finished</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border bg-card">
+                {syncJobs.map((job) => (
+                  <tr key={job.id}>
+                    <td className="px-4 py-3">
+                      <p className="font-semibold text-foreground">{job.source}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{job.id}</p>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{job.provider}</td>
+                    <td className="px-4 py-3 font-semibold text-foreground">{job.changed}</td>
+                    <td className="px-4 py-3">
+                      <Badge tone={job.status === 'completed' ? 'success' : 'warning'}>{job.status}</Badge>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{job.finishedAt}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </SettingsManagementPage>
+  );
+}
+
+function NotificationsSettingsPage() {
+  return (
+    <SettingsManagementPage
+      eyebrow="Settings · Notifications"
+      title="Notifications"
+      description="ควบคุม alert สำหรับ quality review, onboarding, playbook expiry และ knowledge sync"
+      actionLabel="Save rules"
+      icon={FiBell}
+      onCreate={() => undefined}
+    >
+      <section className="grid gap-3 sm:grid-cols-3">
+        <MetricCard label="Enabled rules" value={`${notificationRules.filter((rule) => rule.status === 'enabled').length}`} tone="success" />
+        <MetricCard label="Channels" value={`${notificationChannels.length}`} />
+        <MetricCard label="Critical alerts" value={`${notificationRules.filter((rule) => rule.severity === 'critical').length}`} />
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <Card className="overflow-hidden">
+          <CardHeader>
+            <CardTitle>Notification rules</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">กำหนด event, audience, channel และ severity ที่ backend จะใช้สร้าง notification</p>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <table className="w-full min-w-[860px] border-collapse text-left text-sm">
+                <thead className="bg-muted text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  <tr>
+                    <th className="px-4 py-3">Event</th>
+                    <th className="px-4 py-3">Audience</th>
+                    <th className="px-4 py-3">Channel</th>
+                    <th className="px-4 py-3">Severity</th>
+                    <th className="px-4 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border bg-card">
+                  {notificationRules.map((rule) => (
+                    <tr key={rule.event}>
+                      <td className="px-4 py-3 font-semibold text-foreground">{rule.event}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{rule.audience}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{rule.channel}</td>
+                      <td className="px-4 py-3">
+                        <Badge tone={rule.severity === 'critical' ? 'warning' : rule.severity === 'high' ? 'default' : 'muted'}>{rule.severity}</Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge tone="success">{rule.status}</Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="overflow-hidden">
+          <CardHeader>
+            <CardTitle>Delivery policy</CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">mock config สำหรับ digest, quiet hours และ retry</p>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <Field label="Default digest">
+              <Select defaultValue="5m">
+                <option value="instant">Instant</option>
+                <option value="5m">5 minute digest</option>
+                <option value="daily">Daily digest</option>
+              </Select>
+            </Field>
+            <Field label="Quiet hours">
+              <Input defaultValue="20:00-08:00 Asia/Bangkok" />
+            </Field>
+            <Field label="Retry attempts">
+              <Select defaultValue="3">
+                <option value="1">1 retry</option>
+                <option value="3">3 retries</option>
+                <option value="5">5 retries</option>
+              </Select>
+            </Field>
+            <Field label="Webhook URL">
+              <Input defaultValue="https://example.com/pitchsmith/webhook" />
+            </Field>
+          </CardContent>
+        </Card>
+      </section>
+
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <CardTitle>Channels</CardTitle>
+          <p className="mt-1 text-sm text-muted-foreground">ช่องทางส่ง notification ที่ backend adapter ต้องรองรับ</p>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-3">
+          {notificationChannels.map((channel) => (
+            <div key={channel.key} className="rounded-lg border border-border bg-background/70 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-foreground">{channel.channel}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{channel.key}</p>
+                </div>
+                <Badge tone={channel.status === 'enabled' ? 'success' : 'muted'}>{channel.status}</Badge>
+              </div>
+              <p className="mt-3 text-sm text-muted-foreground">{channel.target}</p>
+              <p className="mt-1 text-xs font-semibold text-muted-foreground">{channel.latency}</p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </SettingsManagementPage>
+  );
 }
 
 function SettingsIndexPage() {
@@ -399,7 +925,7 @@ function RowActionMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () 
         onClick={() => setOpen((value) => !value)}
         aria-label="Open row actions"
       >
-        <FiMoreHorizontal className="h-4 w-4" />
+        <FiMoreVertical className="h-4 w-4" />
       </Button>
       {open && (
         <div className="absolute right-0 top-10 z-10 grid min-w-36 gap-1 rounded-lg border border-border bg-card p-1 shadow-panel">
@@ -428,6 +954,57 @@ function RowActionMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () 
         </div>
       )}
     </div>
+  );
+}
+
+function UserEditModal({ user, onClose }: { user: (typeof managedUsers)[number]; onClose: () => void }) {
+  return (
+    <Portal>
+      <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/20 p-4 backdrop-blur-md" role="presentation" onMouseDown={onClose}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="grid w-full max-w-2xl overflow-hidden rounded-lg border border-border bg-card shadow-panel"
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          <ModalHeader title="Edit user" eyebrow="Settings · Users & Roles" onClose={onClose} />
+          <div className="grid gap-4 p-5 md:grid-cols-2">
+            <Field label="Full name">
+              <Input defaultValue={user.name} />
+            </Field>
+            <Field label="Email">
+              <Input defaultValue={user.email} />
+            </Field>
+            <Field label="Role">
+              <Select defaultValue={user.role}>
+                <option value="sales">sales</option>
+                <option value="manager">manager</option>
+                <option value="admin">admin</option>
+              </Select>
+            </Field>
+            <Field label="Status">
+              <Select defaultValue={user.status}>
+                <option value="active">active</option>
+                <option value="inactive">inactive</option>
+              </Select>
+            </Field>
+            <Field label="Team scope">
+              <Input defaultValue={user.team} />
+            </Field>
+            <Field label="Highest badge">
+              <Input defaultValue={user.badge} />
+            </Field>
+            <div className="rounded-lg border border-border bg-background/70 p-3 md:col-span-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Backend mapping</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                mock นี้ map กับ `users`, `sales_profiles`, `teams`, permission projection และ `GET /auth/me` สำหรับ sidebar/current user
+              </p>
+            </div>
+          </div>
+          <ModalFooter onClose={onClose} primaryLabel="Save user" />
+        </div>
+      </div>
+    </Portal>
   );
 }
 
@@ -573,6 +1150,32 @@ function ModalFooter({ primaryLabel, onClose }: { primaryLabel: string; onClose:
       </Button>
     </div>
   );
+}
+
+function MetricCard({ label, value, tone = 'default' }: { label: string; value: string; tone?: 'default' | 'success' | 'muted' }) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 shadow-panel">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-semibold text-muted-foreground">{label}</p>
+        <span
+          className={[
+            'h-2.5 w-2.5 rounded-full',
+            tone === 'success' ? 'bg-success' : tone === 'muted' ? 'bg-muted-foreground/40' : 'bg-primary',
+          ].join(' ')}
+        />
+      </div>
+      <p className="mt-3 text-2xl font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 }
 
 function ThemeSettingsPage() {

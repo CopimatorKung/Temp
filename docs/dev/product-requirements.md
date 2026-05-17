@@ -271,7 +271,7 @@ Acceptance criteria:
 
 ### Feature G: User, Role และ Sales Profile Management
 
-admin ต้องจัดการข้อมูลผู้ใช้และ sales profile ได้ เพื่อให้ sales, manager และ admin ใช้งานระบบตามสิทธิ์
+admin ต้องจัดการข้อมูลผู้ใช้, sales profile, security policy และ knowledge sync policy ได้ เพื่อให้ sales, manager และ admin ใช้งานระบบตามสิทธิ์และ backend มี config กลางที่ enforce ได้จริง
 
 Requirements:
 
@@ -280,12 +280,16 @@ Requirements:
 - ผูก sales กับ team และ manager ได้
 - เก็บ product line, region, language และ readiness status ได้
 - manager เห็นเฉพาะ sales ในทีมของตัวเอง
+- Settings > Security ต้องกำหนด session TTL, idle timeout, failed login lockout, password policy และ audit retention ได้
+- Settings > Knowledge Sync ต้องกำหนด default retrieval provider, sync trigger, Kotaemon endpoint และ LEANN index name ได้ โดย frontend ไม่เรียก provider โดยตรง
 
 Acceptance criteria:
 
 - sales เห็นเฉพาะข้อมูลของตัวเอง
 - manager เห็นข้อมูลของทีม
 - admin จัดการ user, role และ team ได้
+- admin จัดการ security policy และทุก update ต้องมี audit log
+- admin จัดการ Knowledge Sync policy และ trigger manual sync ได้
 - action สำคัญถูกเก็บ audit log
 
 ## 7. MVP User Flow Summary

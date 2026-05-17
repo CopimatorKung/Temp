@@ -50,8 +50,8 @@
   --success: 94 31% 46%;
   --warning: 37 46% 58%;
   --destructive: 3 39% 58%;
-  --border: 162 14% 28%;
-  --input: 162 14% 31%;
+  --border: 162 12% 23%;
+  --input: 162 12% 25%;
   --ring: 94 31% 52%;
   --sidebar: 165 20% 13%;
   --sidebar-foreground: 105 28% 94%;
@@ -59,7 +59,7 @@
   --sidebar-primary-foreground: 105 28% 96%;
   --sidebar-accent: 165 16% 19%;
   --sidebar-accent-foreground: 105 28% 94%;
-  --sidebar-border: 162 14% 28%;
+  --sidebar-border: 162 12% 22%;
   --sidebar-ring: 94 31% 52%;
   color-scheme: dark;
 }
