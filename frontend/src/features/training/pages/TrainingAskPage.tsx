@@ -1,5 +1,18 @@
-import { useState } from 'react';
-import { FiBookOpen, FiCpu, FiEye, FiMessageSquare, FiPaperclip, FiPlus, FiSend, FiSettings, FiUser, FiX } from 'react-icons/fi';
+import { useState, type ReactNode } from 'react';
+import {
+  FiBookOpen,
+  FiChevronLeft,
+  FiChevronRight,
+  FiCpu,
+  FiEye,
+  FiMessageSquare,
+  FiPaperclip,
+  FiPlus,
+  FiSend,
+  FiSettings,
+  FiUser,
+  FiX,
+} from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
 import { buildPath, routes } from '../../../app/routes';
 import { Badge } from '../../../components/ui/Badge';
@@ -48,7 +61,10 @@ export function TrainingAskPage() {
   const [activeSessionId, setActiveSessionId] = useState(sessions[0].id);
   const [draft, setDraft] = useState('โปร Q2 ใช้กับร้านค้ารายย่อยได้ไหม');
   const [pendingCitation, setPendingCitation] = useState<(typeof citations)[number] | null>(null);
+  const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [citationsOpen, setCitationsOpen] = useState(false);
   const activeSession = sessions.find((session) => session.id === activeSessionId) ?? sessions[0];
+  const layoutClass = getAskLayoutClass(sessionsOpen, citationsOpen);
 
   const openPendingCitation = () => {
     if (!pendingCitation) return;
@@ -81,53 +97,68 @@ export function TrainingAskPage() {
         </div>
       </header>
 
-      <main className="grid min-h-[calc(100vh-180px)] min-w-0 gap-4 p-4 md:p-5 xl:grid-cols-[300px_minmax(0,1fr)_330px] lg:p-6">
-        <Card className="min-w-0 border-0 bg-card/45 shadow-none">
-          <CardHeader className="border-b-0 px-0 pb-3 pt-0">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <CardTitle>Sessions</CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">ประวัติ chat กับ AI</p>
+      <main className={['grid min-h-[calc(100vh-180px)] min-w-0 gap-3 p-4 md:p-5 lg:p-6', layoutClass].join(' ')}>
+        {sessionsOpen ? (
+          <Card className="min-w-0 border-0 bg-card/45 shadow-none">
+            <CardHeader className="border-b-0 px-0 pb-2 pt-0">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <CardTitle>Sessions</CardTitle>
+                  <p className="mt-0.5 text-xs text-muted-foreground">ประวัติ chat</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    aria-label="New Session"
+                    title="New Session"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <FiPlus className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Collapse sessions"
+                    title="Collapse sessions"
+                    onClick={() => setSessionsOpen(false)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <FiChevronLeft className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-              <button
-                type="button"
-                aria-label="New Session"
-                title="New Session"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <FiPlus className="h-4 w-4" />
-              </button>
-            </div>
-          </CardHeader>
-          <CardContent className="grid gap-1.5 p-2">
-            {sessions.map((session) => {
-              const active = session.id === activeSession.id;
+            </CardHeader>
+            <CardContent className="grid gap-1.5 p-0">
+              {sessions.map((session) => {
+                const active = session.id === activeSession.id;
 
-              return (
-                <button
-                  key={session.id}
-                  type="button"
-                  onClick={() => setActiveSessionId(session.id)}
-                  className={[
-                    'rounded-lg border px-2.5 py-2 text-left transition',
-                    active ? 'border-primary bg-primary/10 text-foreground shadow-sm' : 'border-border bg-card hover:bg-muted',
-                  ].join(' ')}
-                >
-                  <div className="flex items-start gap-2">
-                    <FiMessageSquare className={['mt-0.5 h-3.5 w-3.5 shrink-0', active ? 'text-primary' : 'text-muted-foreground'].join(' ')} />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-semibold leading-5">{session.title}</p>
-                      <p className="mt-0.5 truncate text-[11px] leading-4 text-muted-foreground">{session.preview}</p>
-                      <p className="mt-1 text-[10px] leading-4 text-muted-foreground">{session.time}</p>
+                return (
+                  <button
+                    key={session.id}
+                    type="button"
+                    onClick={() => setActiveSessionId(session.id)}
+                    className={[
+                      'rounded-lg border px-2.5 py-2 text-left transition',
+                      active ? 'border-primary bg-primary/10 text-foreground shadow-sm' : 'border-border bg-card hover:bg-muted',
+                    ].join(' ')}
+                  >
+                    <div className="flex items-start gap-2">
+                      <FiMessageSquare className={['mt-0.5 h-3.5 w-3.5 shrink-0', active ? 'text-primary' : 'text-muted-foreground'].join(' ')} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13px] font-semibold leading-5">{session.title}</p>
+                        <p className="mt-0.5 truncate text-[11px] leading-4 text-muted-foreground">{session.preview}</p>
+                        <p className="mt-0.5 text-[10px] leading-4 text-muted-foreground">{session.time}</p>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              );
-            })}
-          </CardContent>
-        </Card>
+                  </button>
+                );
+              })}
+            </CardContent>
+          </Card>
+        ) : (
+          <CollapsedAskRail label="Sessions" count={sessions.length} icon={<FiMessageSquare className="h-4 w-4" />} onOpen={() => setSessionsOpen(true)} />
+        )}
 
-        <section className="flex min-h-[680px] min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-panel">
+        <section className="flex min-h-[700px] min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-panel">
           <div className="flex flex-col gap-3 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-base font-semibold text-foreground">{activeSession.title}</h2>
@@ -181,37 +212,54 @@ export function TrainingAskPage() {
           </div>
         </section>
 
-        <aside className="grid content-start gap-5">
-          <Card className="border-0 bg-transparent shadow-none">
-            <CardHeader className="border-b-0 px-0 pb-3 pt-0">
-              <CardTitle>Citations</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">source ที่ใช้ตอบ session นี้</p>
-            </CardHeader>
-            <CardContent className="grid gap-3 p-0">
-              {citations.map((citation) => (
-                <div key={citation.title} className="group rounded-lg border border-border bg-white p-3 transition hover:border-primary/40 hover:shadow-sm">
-                  <div className="flex items-start gap-3">
-                    <FiBookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold">{citation.title}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{citation.section}</p>
-                      <p className="mt-2 text-xs leading-5 text-muted-foreground">{citation.snippet}</p>
-                    </div>
-                    <button
-                      type="button"
-                      aria-label={`Open reference for ${citation.title}`}
-                      title="Open reference"
-                      onClick={() => setPendingCitation(citation)}
-                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <FiEye className="h-4 w-4" />
-                    </button>
+        {citationsOpen ? (
+          <aside className="grid content-start gap-3">
+            <Card className="border-0 bg-transparent shadow-none">
+              <CardHeader className="border-b-0 px-0 pb-2 pt-0">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <CardTitle>Citations</CardTitle>
+                    <p className="mt-0.5 text-xs text-muted-foreground">source ของคำตอบ</p>
                   </div>
+                  <button
+                    type="button"
+                    aria-label="Collapse citations"
+                    title="Collapse citations"
+                    onClick={() => setCitationsOpen(false)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <FiChevronRight className="h-4 w-4" />
+                  </button>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        </aside>
+              </CardHeader>
+              <CardContent className="grid gap-2 p-0">
+                {citations.map((citation) => (
+                  <div key={citation.title} className="group rounded-lg border border-border bg-white p-2.5 transition hover:border-primary/40 hover:shadow-sm">
+                    <div className="flex items-start gap-2">
+                      <FiBookOpen className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13px] font-semibold">{citation.title}</p>
+                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{citation.section}</p>
+                        <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-muted-foreground">{citation.snippet}</p>
+                      </div>
+                      <button
+                        type="button"
+                        aria-label={`Open reference for ${citation.title}`}
+                        title="Open reference"
+                        onClick={() => setPendingCitation(citation)}
+                        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <FiEye className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </aside>
+        ) : (
+          <CollapsedAskRail label="Citations" count={citations.length} icon={<FiBookOpen className="h-4 w-4" />} onOpen={() => setCitationsOpen(true)} />
+        )}
       </main>
 
       {pendingCitation && (
@@ -315,4 +363,40 @@ function ChatBubble({ role, time, children }: { role: 'user' | 'assistant'; time
       )}
     </div>
   );
+}
+
+function CollapsedAskRail({ label, count, icon, onOpen }: { label: string; count: number; icon: ReactNode; onOpen: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group flex min-h-24 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm transition hover:border-primary/40 hover:bg-secondary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring xl:min-h-[700px]"
+      aria-label={`Expand ${label}`}
+      title={`Expand ${label}`}
+    >
+      <span className="grid justify-items-center gap-2">
+        <span className="grid h-9 w-9 place-items-center rounded-lg bg-secondary text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
+          {icon}
+        </span>
+        <span className="[writing-mode:vertical-rl] hidden rotate-180 text-xs font-semibold uppercase tracking-[0.16em] xl:block">{label}</span>
+        <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-semibold">{count}</span>
+      </span>
+    </button>
+  );
+}
+
+function getAskLayoutClass(sessionsOpen: boolean, citationsOpen: boolean) {
+  if (sessionsOpen && citationsOpen) {
+    return 'xl:grid-cols-[220px_minmax(0,1fr)_260px] 2xl:grid-cols-[240px_minmax(0,1fr)_280px]';
+  }
+
+  if (sessionsOpen) {
+    return 'xl:grid-cols-[220px_minmax(0,1fr)_56px] 2xl:grid-cols-[240px_minmax(0,1fr)_56px]';
+  }
+
+  if (citationsOpen) {
+    return 'xl:grid-cols-[56px_minmax(0,1fr)_260px] 2xl:grid-cols-[56px_minmax(0,1fr)_280px]';
+  }
+
+  return 'xl:grid-cols-[56px_minmax(0,1fr)_56px]';
 }

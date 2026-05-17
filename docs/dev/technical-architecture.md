@@ -36,6 +36,75 @@ flowchart LR
     WS --> FE
 ```
 
+## 2.1 Auth and Onboarding Domain UML
+
+```mermaid
+classDiagram
+    class User {
+        id
+        email
+        name
+        role
+        teamId
+        status
+    }
+    class SalesProfile {
+        userId
+        salesCode
+        productLine
+        readinessStatus
+    }
+    class AuthSession {
+        id
+        userId
+        tokenHash
+        expiresAt
+        revokedAt
+    }
+    class OnboardingTrack {
+        id
+        title
+        solutionId
+        categoryId
+        level
+        badgeThresholdPercent
+        status
+    }
+    class TrackPrerequisite {
+        id
+        trackId
+        prerequisiteTrackId
+        unlockPolicy
+        minProgressPercent
+    }
+    class TrackAssignment {
+        id
+        trackId
+        salesUserId
+        status
+    }
+    class TopicProgress {
+        assignmentId
+        topicId
+        status
+        score
+    }
+    class UserBadge {
+        badgeId
+        userId
+        awardedAt
+    }
+
+    User "1" --> "0..1" SalesProfile
+    User "1" --> "0..*" AuthSession
+    OnboardingTrack "1" --> "0..*" TrackPrerequisite
+    TrackPrerequisite "many" --> "1" OnboardingTrack : prerequisite
+    User "1" --> "0..*" TrackAssignment
+    OnboardingTrack "1" --> "0..*" TrackAssignment
+    TrackAssignment "1" --> "0..*" TopicProgress
+    User "1" --> "0..*" UserBadge
+```
+
 ## 3. Rust/Actix Web Module Structure
 
 Backend structure ต้องตาม [backend-architecture-standard.md](./backend-architecture-standard.md) โดยยึด pattern DDD + Clean Architecture จาก repo `Rayato159/quests-tracker` และปรับ HTTP adapter เป็น Actix Web
@@ -69,6 +138,8 @@ tests/
 
 | Module | Responsibility |
 |---|---|
+| `auth` | login, logout, current user, token/session validation, role permission scope |
+| `dashboard` | aggregate KPI, readiness, playbook gap, lost deal reason และ onboarding progress สำหรับ manager/investor view |
 | `quality-review-batches` | batch lifecycle, batch item queue, async sequential processing |
 | `audio-submissions` | รับ metadata, upload status, processing lifecycle |
 | `storage` | เก็บและอ่านไฟล์เสียงและเอกสารต้นฉบับ |
@@ -91,6 +162,7 @@ tests/
 | Table | Key Fields |
 |---|---|
 | `users` | id, name, email, role, team_id, status |
+| `auth_sessions` | id, user_id, token_hash, expires_at, revoked_at, created_at |
 | `sales_profiles` | user_id, sales_code, product_line, region, language, readiness_status |
 | `teams` | id, name, manager_id |
 | `quality_review_batches` | id, user_id, scorecard_id, title, source_type, topic, status, total_items, completed_items, failed_items |
@@ -122,6 +194,7 @@ tests/
 | `voice_response_latency_events` | id, session_id, ai_turn_id, user_id, action, latency_ms, captured_at |
 | `training_results` | id, user_id, session_id, submission_id, recording_review_batch_id, recording_review_attempt_id, type, score, summary_json |
 | `onboarding_tracks` | id, title, solution, solution_id, category_id, level, version, status, badge_threshold_percent, owner_id |
+| `onboarding_track_prerequisites` | id, track_id, prerequisite_track_id, unlock_policy, min_progress_percent |
 | `onboarding_track_categories` | id, name, description, status |
 | `solutions` | id, name, owner, status |
 | `onboarding_track_topics` | id, track_id, sort_index, title, type, source_ref, required_score, required_senario_id |
@@ -135,6 +208,10 @@ tests/
 
 | Method | Path | Purpose |
 |---|---|---|
+| `POST` | `/auth/login` | login with email/password and return access token plus user profile |
+| `GET` | `/auth/me` | get current user, role, permissions, sales profile and highest badge |
+| `POST` | `/auth/logout` | revoke current session |
+| `GET` | `/dashboard/overview` | aggregate manager dashboard by role/team/date range |
 | `POST` | `/audio-submissions` | create upload record and metadata |
 | `POST` | `/audio-submissions/:id/file` | upload audio file |
 | `POST` | `/audio-submissions/:id/process` | start ASR/scoring job |
@@ -152,6 +229,8 @@ tests/
 | `PUT` | `/knowledge/pages/:id` | update page metadata and Markdown body |
 | `POST` | `/knowledge/import-jobs` | upload/import PDF/CSV/XLSX/MD/DOC/DOCX/TXT resource |
 | `POST` | `/knowledge/pages/:id/publish` | publish page and queue index sync |
+| `POST` | `/knowledge/pages/:id/index-sync` | force sync published Knowledge page to BM25 and optional Kotaemon/LEANN |
+| `GET` | `/knowledge/pages/:id/index-status` | inspect index status for one Knowledge page |
 | `GET` | `/knowledge/bookmarks` | list user favorite knowledge from Senario/session review |
 | `POST` | `/knowledge/bookmarks` | favorite Knowledge page |
 | `POST` | `/playbook-chat-sessions` | create Ask chat session |
@@ -159,6 +238,7 @@ tests/
 | `GET` | `/playbook-chat-sessions/:id` | get Ask session with messages and citations |
 | `POST` | `/playbook-chat-sessions/:id/messages` | ask playbook-guided question in a session |
 | `POST` | `/playbook-messages/:id/feedback` | save answer feedback |
+| `POST` | `/playbook-search` | admin/debug search via BM25, Kotaemon/LEANN or hybrid provider |
 | `POST` | `/playbook-indexes/sync` | admin/internal sync approved Playbook source to local RAG provider |
 | `GET` | `/playbook-indexes/status` | inspect BM25/Kotaemon/LEANN indexing state |
 | `POST` | `/recording-review-batches` | create training recording batch |
@@ -175,7 +255,7 @@ tests/
 | `GET` | `/onboarding/tracks` | list track library, progress summary and badge status; supports `categoryId`, `level`, `solutionKey` filters |
 | `POST` | `/onboarding/tracks` | create onboarding track |
 | `GET` | `/onboarding/tracks/:id` | get track detail with topics and user progress |
-| `PUT` | `/onboarding/tracks/:id` | update track metadata, topic order, source refs and badge threshold |
+| `PUT` | `/onboarding/tracks/:id` | update track metadata, prerequisite tracks, topic order, source refs and badge threshold |
 | `POST` | `/onboarding/tracks/:id/assignments` | assign track to sales user/team |
 | `GET` | `/onboarding/users/:id/progress` | get assigned track progress for user |
 | `POST` | `/onboarding/track-topics/:topicId/complete` | mark topic completed after validation |

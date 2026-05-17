@@ -344,11 +344,11 @@ export function RecordingReviewPage() {
           <Metric label="Needs coaching" value={`${batches.filter((batch) => batch.status === 'needs_coaching').length}`} tone="danger" />
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-2">
-          <SegmentButton active={tab === 'batches'} onClick={() => setTab('batches')} icon={<FiClipboard className="h-4 w-4" />}>
+        <div className="inline-grid w-full max-w-md grid-cols-2 gap-1 rounded-lg border border-border bg-card p-1 shadow-sm">
+          <SegmentButton compact active={tab === 'batches'} onClick={() => setTab('batches')} icon={<FiClipboard className="h-4 w-4" />}>
             Practice Batches
           </SegmentButton>
-          <SegmentButton active={tab === 'rubrics'} onClick={() => setTab('rubrics')} icon={<FiLayers className="h-4 w-4" />}>
+          <SegmentButton compact active={tab === 'rubrics'} onClick={() => setTab('rubrics')} icon={<FiLayers className="h-4 w-4" />}>
             Rubric Management
           </SegmentButton>
         </div>
@@ -1472,20 +1472,31 @@ function SegmentButton({
   icon,
   children,
   description,
+  compact = false,
 }: {
   active: boolean;
   onClick: () => void;
   icon: ReactNode;
   children: ReactNode;
   description?: string;
+  compact?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={[
-        'grid min-h-20 min-w-0 justify-items-center gap-1 rounded-lg border px-4 py-3 text-center text-sm font-semibold transition',
-        active ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground hover:bg-muted',
+        'min-w-0 rounded-md text-sm font-semibold transition',
+        compact
+          ? 'inline-flex h-9 items-center justify-center gap-2 px-3'
+          : 'grid min-h-20 justify-items-center gap-1 border px-4 py-3 text-center',
+        active
+          ? compact
+            ? 'bg-primary text-primary-foreground shadow-sm'
+            : 'border-primary bg-primary text-primary-foreground'
+          : compact
+            ? 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+            : 'border-border bg-card text-foreground hover:bg-muted',
       ].join(' ')}
     >
       <span className="inline-flex min-w-0 items-center justify-center gap-2">

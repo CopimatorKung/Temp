@@ -1,5 +1,6 @@
 import { FiArrowRight, FiBarChart2, FiCheckCircle, FiClock, FiFileText, FiMic, FiShield, FiUsers } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
+import { BrandMark } from '../../../components/brand/BrandMark';
 import { Button } from '../../../components/ui/Button';
 import { Card, CardContent } from '../../../components/ui/Card';
 import { routes } from '../../../app/routes';
@@ -29,13 +30,10 @@ export function LandingPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card px-5 py-4 lg:px-8">
         <nav className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-foreground">SaleSync</p>
-            <p className="text-xs text-muted-foreground">Sales quality and onboarding platform</p>
-          </div>
-          <Link to={routes.dashboard}>
+          <BrandMark size="sm" showWordmark />
+          <Link to={routes.login}>
             <Button>
-              Enter Platform
+              Login
               <FiArrowRight className="h-4 w-4" />
             </Button>
           </Link>
@@ -54,7 +52,7 @@ export function LandingPage() {
               โดยเริ่มจากไฟล์เสียงที่ upload ได้ทันที ไม่ต้องเชื่อมตู้โทรศัพท์ใน MVP
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link to={routes.dashboard}>
+              <Link to={routes.login}>
                 <Button>
                   View Mock Platform
                   <FiArrowRight className="h-4 w-4" />

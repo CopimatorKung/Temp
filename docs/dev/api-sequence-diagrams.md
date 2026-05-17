@@ -2,6 +2,51 @@
 
 เอกสารนี้แสดง sequence diagram ของ API หลักใน MVP โดยใช้ Rust + Actix Web เป็น backend
 
+## -1. Auth Login and Current User
+
+```mermaid
+sequenceDiagram
+    participant FE as React App
+    participant API as Actix API
+    participant DB as Turso
+    participant Auth as Auth Service
+    participant Audit as Audit Log
+
+    FE->>API: POST /auth/login email + password
+    API->>Auth: validate credentials and rate limit
+    Auth->>DB: select user by email and password_hash
+    DB-->>Auth: user, role, sales_profile, badge summary
+    Auth->>DB: insert auth_sessions token_hash + expires_at
+    Auth->>Audit: log auth.login_succeeded
+    Auth-->>API: access token + current user DTO
+    API-->>FE: 200 token + user
+    FE->>API: GET /auth/me with bearer token
+    API->>Auth: validate token/session
+    Auth->>DB: select current user, role permissions, profile, highest badge
+    DB-->>Auth: current user projection
+    API-->>FE: 200 current user
+```
+
+## -0.5 `GET /dashboard/overview`
+
+```mermaid
+sequenceDiagram
+    participant FE as React App
+    participant API as Actix API
+    participant DB as Turso
+    participant Dashboard as Dashboard Query Service
+
+    FE->>API: GET /dashboard/overview?teamId&dateFrom&dateTo
+    API->>API: validate current user role and team scope
+    API->>Dashboard: build overview query for role/team/date range
+    Dashboard->>DB: aggregate quality scores, training results, onboarding progress
+    Dashboard->>DB: aggregate playbook gaps, lost deal reasons, KPI trend series
+    DB-->>Dashboard: dashboard projection rows
+    Dashboard->>Dashboard: normalize KPI cards, heatmap, gap list and chart series
+    Dashboard-->>API: dashboard overview DTO
+    API-->>FE: 200 dashboard overview
+```
+
 ## 0. Quality Review Batch Flow
 
 ```mermaid
@@ -331,6 +376,31 @@ sequenceDiagram
     API-->>FE: published + index status
 ```
 
+## 10.2 `POST /knowledge/pages/:id/index-sync`
+
+```mermaid
+sequenceDiagram
+    participant FE as Admin UI
+    participant API as Actix API
+    participant DB as Turso
+    participant BM25 as Turso FTS/BM25
+    participant RAG as Kotaemon RAG Service
+    participant LEANN as LEANN Local Index
+
+    FE->>API: POST /knowledge/pages/:id/index-sync provider=kotaemon_leann
+    API->>API: require admin/owner and published page
+    API->>DB: load page markdown, metadata, tags, effective/expiry
+    API->>BM25: update source-first FTS index
+    alt provider includes Kotaemon/LEANN
+        API->>RAG: upsert document with SaleSync source metadata
+        RAG->>LEANN: chunk and update local semantic index
+        LEANN-->>RAG: external chunk ids
+        RAG-->>API: external document id and chunk mapping
+        API->>DB: upsert playbook_rag_indexes source_type=knowledge_page
+    end
+    API-->>FE: 200 index status for page
+```
+
 ## 11. Ask Playbook Chat Session
 
 ```mermaid
@@ -366,6 +436,37 @@ sequenceDiagram
     API-->>FE: 200 answer, citations, abstained
 ```
 
+## 11.0 `POST /playbook-search`
+
+```mermaid
+sequenceDiagram
+    participant FE as Admin/UAT Tool
+    participant API as Actix API
+    participant PSearch as Playbook Search Port
+    participant BM25 as Turso FTS/BM25
+    participant RAG as Kotaemon RAG Service
+    participant LEANN as LEANN Local Index
+    participant DB as Turso
+
+    FE->>API: POST /playbook-search query + provider + filters
+    API->>API: require admin/debug permission
+    API->>PSearch: search(query, provider, filters)
+    alt BM25
+        PSearch->>BM25: search indexed Knowledge Pages
+    else Kotaemon/LEANN
+        PSearch->>RAG: retrieve query with metadata filters
+        RAG->>LEANN: semantic search
+        LEANN-->>RAG: chunk candidates
+        RAG-->>PSearch: source ids and chunk ids
+    else hybrid
+        PSearch->>BM25: candidate search
+        PSearch->>RAG: semantic candidate search
+    end
+    PSearch->>DB: hydrate source metadata and filter status/effective/expiry
+    PSearch-->>API: ranked sources with citations
+    API-->>FE: 200 search results
+```
+
 ## 11.1 Playbook RAG Index Sync
 
 ```mermaid
@@ -399,9 +500,10 @@ sequenceDiagram
 
     FE->>API: GET onboarding tracks
     API->>API: check sales or manager permission
-    API->>DB: select tracks, topic counts, assignment progress, badges
-    DB-->>API: track library and badge summary
-    API-->>FE: 200 tracks
+    API->>DB: select tracks, prerequisites, topic counts, assignment progress, badges
+    DB-->>API: track library, prerequisite progress and badge summary
+    API->>API: compute isLocked and unlockReason per track
+    API-->>FE: 200 tracks with prerequisites
 ```
 
 ## 13. `GET /onboarding/tracks/:id`
@@ -414,9 +516,10 @@ sequenceDiagram
 
     FE->>API: GET track detail
     API->>API: check track visibility and assignment scope
-    API->>DB: select track, topics, source refs, progress, badge criteria
-    DB-->>API: track detail
-    API-->>FE: 200 track with topic progress
+    API->>DB: select track, prerequisite tracks, topics, source refs, progress, badge criteria
+    DB-->>API: track detail and prerequisite progress
+    API->>API: block start action when prerequisites not met
+    API-->>FE: 200 track with prerequisite and topic progress
 ```
 
 ## 14. `POST /onboarding/senario-completions`
@@ -432,8 +535,10 @@ sequenceDiagram
     API->>API: find linked track topic and validate required_score
     API->>DB: upsert onboarding_topic_progress
     API->>DB: recalculate track percent and award badge if threshold met
+    API->>DB: find dependent tracks unlocked by this progress
+    API->>Audit: log onboarding.track_unlocked if prerequisite chain completed
     API->>Audit: log onboarding.senario_topic_completed
-    API-->>FE: 200 updated track progress and badge state
+    API-->>FE: 200 updated track progress, badge state and unlocked tracks
 ```
 
 ## 15. WSS `/ws/voice-sessions`

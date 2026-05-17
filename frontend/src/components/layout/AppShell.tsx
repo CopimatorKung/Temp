@@ -17,6 +17,7 @@ import {
 } from 'react-icons/fi';
 import { Link, useLocation } from 'react-router-dom';
 import { routes } from '../../app/routes';
+import { BrandMark } from '../brand/BrandMark';
 import { Button } from '../ui/Button';
 import { Portal } from '../ui/Portal';
 import { Breadcrumbs } from './Breadcrumbs';
@@ -61,12 +62,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             ].join(' ')}
           >
             {isCollapsed ? (
-              <span aria-hidden="true">PS</span>
+              <BrandMark size="sm" />
             ) : (
-              <>
-                <p className="truncate text-[13px] font-semibold">Pitchsmith</p>
-                <p className="truncate text-xs text-sidebar-foreground/68">AI Sales Training</p>
-              </>
+              <BrandMark size="sm" showWordmark />
             )}
             <span className="sr-only">Pitchsmith home</span>
           </Link>
@@ -140,8 +138,8 @@ function UserBadge({ isCollapsed }: { isCollapsed: boolean }) {
       >
         <div
           className={[
-            'flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground',
-            isCollapsed ? 'border border-sidebar-primary/30 shadow-sm ring-2 ring-sidebar-background' : '',
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-sidebar-primary/30 bg-sidebar-primary text-sidebar-primary-foreground shadow-sm ring-2 ring-sidebar-background',
+            isCollapsed ? 'outline outline-1 outline-sidebar-primary/20' : '',
           ].join(' ')}
         >
           {currentUser.initials}

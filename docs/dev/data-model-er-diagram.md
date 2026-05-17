@@ -6,6 +6,7 @@
 erDiagram
     TEAMS ||--o{ USERS : has
     USERS ||--o| SALES_PROFILES : may_have
+    USERS ||--o{ AUTH_SESSIONS : logs_in_with
     USERS ||--o{ AUDIO_SUBMISSIONS : creates
     USERS ||--o{ QUALITY_REVIEW_BATCHES : creates
     USERS ||--o{ RECORDING_REVIEW_BATCHES : creates
@@ -55,6 +56,8 @@ erDiagram
     ONBOARDING_TRACK_CATEGORIES ||--o{ ONBOARDING_TRACKS : categorizes
     SOLUTIONS ||--o{ ONBOARDING_TRACKS : scopes
     ONBOARDING_TRACKS ||--o{ ONBOARDING_TRACK_TOPICS : contains
+    ONBOARDING_TRACKS ||--o{ ONBOARDING_TRACK_PREREQUISITES : has_prerequisite_rule
+    ONBOARDING_TRACKS ||--o{ ONBOARDING_TRACK_PREREQUISITES : is_required_by
     ONBOARDING_TRACKS ||--o{ ONBOARDING_TRACK_ASSIGNMENTS : assigned_as
     ONBOARDING_TRACKS ||--o{ ONBOARDING_BADGES : rewards
     ONBOARDING_TRACK_ASSIGNMENTS ||--o{ ONBOARDING_TOPIC_PROGRESS : tracks
@@ -88,6 +91,15 @@ erDiagram
         string language
         string readiness_status
         datetime onboarded_at
+    }
+
+    AUTH_SESSIONS {
+        string id PK
+        string user_id FK
+        string token_hash
+        datetime expires_at
+        datetime revoked_at
+        datetime created_at
     }
 
     AUDIO_SUBMISSIONS {
@@ -451,6 +463,14 @@ erDiagram
         string owner_id FK
     }
 
+    ONBOARDING_TRACK_PREREQUISITES {
+        string id PK
+        string track_id FK
+        string prerequisite_track_id FK
+        string unlock_policy
+        float min_progress_percent
+    }
+
     ONBOARDING_TRACK_CATEGORIES {
         string id PK
         string name
@@ -528,9 +548,11 @@ erDiagram
 
 - `audio_submissions` เป็น abstraction หลักของ MVP แทน `calls` เพราะช่วงแรกยังไม่เชื่อม PBX/CTI
 - `users.role` ใช้ role หลัก 3 แบบใน MVP คือ `sales`, `manager`, `admin`
+- `auth_sessions` เก็บ token hash และ expiry เท่านั้น ไม่เก็บ raw token; `GET /auth/me` ต้อง join `users`, `sales_profiles`, permission projection และ badge summary
 - `sales_profiles` เก็บข้อมูลที่จำเป็นต่อ coaching/onboarding เท่านั้น ไม่ใช่ HRM profile
 - `onboarding_tracks` คือ learning path หลักสำหรับ sales readiness โดยรวมหลาย topic เข้าเป็น track เดียว
 - `onboarding_tracks.category_id`, `solution_id` และ `level` ใช้ทำ filter/reporting โดย `level` ต้องอยู่ใน `beginner`, `intermediate`, `advanced`
+- `onboarding_track_prerequisites` ใช้ lock/unlock track เช่น `Chatbot Business` ต้องผ่าน `Chatbot Basic I` และ `Chatbot Basic II`; ห้ามสร้าง cycle และควร validate ตอน save track
 - `onboarding_track_categories` จัดกลุ่ม track เช่น Foundation, Solution Specialist, Enterprise และต้อง block delete ถ้ายังมี track ใช้งานอยู่
 - `solutions` คือ catalog สำหรับ filter และ assign track โดย default MVP คือ Chatbot, Voicebot, Digital Human, CMS, DocSearch
 - `onboarding_track_topics.type` รองรับ `knowledge`, `external_view`, `audio_response`, `recording_review`, และ `senario`
@@ -559,6 +581,7 @@ erDiagram
 | Table | Index |
 |---|---|
 | `audio_submissions` | `(user_id, created_at)`, `(status, created_at)` |
+| `auth_sessions` | `(user_id, expires_at)`, `(token_hash)` |
 | `recording_review_batches` | `(user_id, created_at)`, `(status, created_at)`, `(scorecard_id, created_at)` |
 | `recording_review_attempts` | `(batch_id, sort_order)`, `(audio_submission_id)`, `(status, created_at)` |
 | `sales_profiles` | `(user_id)`, `(sales_code)`, `(region, product_line)` |
@@ -569,6 +592,7 @@ erDiagram
 | `voice_sessions` | `(user_id, started_at)` |
 | `training_results` | `(user_id, created_at)`, `(recording_review_batch_id)`, `(recording_review_attempt_id)` |
 | `onboarding_tracks` | `(status, version)`, `(owner_id, status)` |
+| `onboarding_track_prerequisites` | `(track_id)`, `(prerequisite_track_id)`, unique `(track_id, prerequisite_track_id)` |
 | `onboarding_track_topics` | `(track_id, sort_index)`, `(type, required_senario_id)` |
 | `onboarding_track_assignments` | `(sales_user_id, status)`, `(track_id, status)` |
 | `onboarding_topic_progress` | `(assignment_id, topic_id)`, `(completed_source_type, completed_source_id)` |

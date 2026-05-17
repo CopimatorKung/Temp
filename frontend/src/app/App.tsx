@@ -4,6 +4,7 @@ import { AdminUsersPage } from '../features/admin/pages/AdminUsersPage';
 import { AudioQualityReviewPage } from '../features/audio-submissions/pages/AudioQualityReviewPage';
 import { TemplateEditorPage } from '../features/audio-submissions/pages/TemplateEditorPage';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
+import { LoginPage } from '../features/auth/pages/LoginPage';
 import { LandingPage } from '../features/landing/pages/LandingPage';
 import { NotFoundPage } from '../features/not-found/pages/NotFoundPage';
 import { OnboardingPage } from '../features/onboarding/pages/OnboardingPage';
@@ -20,6 +21,8 @@ export function App() {
     <Router>
       <Routes>
         <Route path={routes.home} element={<LandingPage />} />
+        <Route path={routes.login} element={<LoginPage />} />
+        <Route path="/signin" element={<Navigate to={routes.login} replace />} />
         <Route path="/dashboard" element={<Navigate to={routes.dashboard} replace />} />
         <Route path="/audio/new" element={<Navigate to={routes.audioNew} replace />} />
         <Route path="/training/ask" element={<Navigate to={routes.trainingAsk} replace />} />

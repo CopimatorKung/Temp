@@ -431,7 +431,7 @@ function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => 
     setActivePageId(pageId);
     setEditing(true);
     window.requestAnimationFrame(() => {
-      document.getElementById('knowledge-page-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById(`knowledge-page-${pageId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
   };
 
@@ -667,30 +667,6 @@ function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => 
         </aside>
 
         <section className="grid min-w-0 gap-4">
-          {editing && activePage ? (
-            <Card id="knowledge-page-editor" className="scroll-mt-20 min-w-0 overflow-hidden">
-              <CardHeader className="px-4 py-3">
-                <CardTitle>Edit selected page</CardTitle>
-                <p className="mt-1 text-xs text-muted-foreground">{activePage.chapter.title} / {activePage.topic.title}</p>
-              </CardHeader>
-              <CardContent className="grid gap-4 p-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Page title">
-                    <Input defaultValue={activePage.title} />
-                  </Field>
-                  <Field label="Status">
-                    <Select defaultValue={activePage.status}>
-                      <option value="draft">draft</option>
-                      <option value="review">review</option>
-                      <option value="published">published</option>
-                    </Select>
-                  </Field>
-                </div>
-                <TiptapMarkdownEditor markdown={draftMarkdown} onChange={setDraftMarkdown} />
-              </CardContent>
-            </Card>
-          ) : null}
-
           <Card className="min-w-0 overflow-hidden">
             <CardHeader className="px-4 py-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -752,15 +728,20 @@ function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => 
                           </Button>
                         </div>
 
-                        {topic.pages.map((page) => (
-                          <section
-                            key={page.id}
-                            id={`knowledge-page-${page.id}`}
-                            className={[
-                              'scroll-mt-24 rounded-lg border p-4 transition md:p-5',
-                              activePage?.id === page.id ? 'border-primary/50 bg-primary/5 shadow-sm' : 'border-border bg-background/60',
-                            ].join(' ')}
-                          >
+                        {topic.pages.map((page) => {
+                          const pageIsActive = activePage?.id === page.id;
+                          const pageIsEditing = editing && pageIsActive;
+
+                          return (
+                            <section
+                              key={page.id}
+                              id={`knowledge-page-${page.id}`}
+                              className={[
+                                'scroll-mt-24 rounded-lg border p-4 transition md:p-5',
+                                pageIsActive ? 'border-primary/50 bg-primary/5 shadow-sm' : 'border-border bg-background/60',
+                                pageIsEditing ? 'ring-2 ring-primary/18' : '',
+                              ].join(' ')}
+                            >
                             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <h4 className="text-xl font-semibold text-foreground">{page.title}</h4>
@@ -771,13 +752,20 @@ function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => 
                               <div className="flex flex-wrap gap-2">
                                 <Button
                                   type="button"
-                                  variant="secondary"
+                                  variant={pageIsEditing ? 'primary' : 'secondary'}
                                   className="h-8 px-3 text-xs"
-                                  onClick={() => editPage(page.id)}
+                                  onClick={() => {
+                                    if (pageIsEditing) {
+                                      setEditing(false);
+                                    } else {
+                                      editPage(page.id);
+                                    }
+                                  }}
                                 >
                                   <FiEdit2 className="h-4 w-4" />
-                                  Edit
+                                  {pageIsEditing ? 'Done editing' : 'Edit'}
                                 </Button>
+                                {pageIsEditing ? <Badge tone="warning">editing this page</Badge> : null}
                                 <Badge tone={page.status === 'published' ? 'success' : page.status === 'review' ? 'warning' : 'muted'}>{page.status}</Badge>
                                 {page.tags.slice(0, 3).map((tag) => (
                                   <Badge key={tag} tone="muted">
@@ -786,9 +774,28 @@ function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => 
                                 ))}
                               </div>
                             </div>
-                            <MarkdownArticle markdown={page.markdown} />
+                            {pageIsEditing ? (
+                              <div className="grid gap-4 rounded-lg border border-border bg-card p-4">
+                                <div className="grid gap-4 md:grid-cols-2">
+                                  <Field label="Page title">
+                                    <Input defaultValue={page.title} />
+                                  </Field>
+                                  <Field label="Status">
+                                    <Select defaultValue={page.status}>
+                                      <option value="draft">draft</option>
+                                      <option value="review">review</option>
+                                      <option value="published">published</option>
+                                    </Select>
+                                  </Field>
+                                </div>
+                                <TiptapMarkdownEditor markdown={draftMarkdown} onChange={setDraftMarkdown} />
+                              </div>
+                            ) : (
+                              <MarkdownArticle markdown={page.markdown} />
+                            )}
                           </section>
-                        ))}
+                          );
+                        })}
                       </section>
                     ))}
                   </section>

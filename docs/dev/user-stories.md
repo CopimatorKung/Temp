@@ -1,5 +1,19 @@
 # User Stories
 
+## Epic 0: Auth and Platform Entry
+
+### US-000 Login and Current User
+
+ในฐานะผู้ใช้ ฉันต้องการ login ด้วย email/password และให้ระบบโหลดข้อมูลผู้ใช้ปัจจุบัน เพื่อเข้า platform ด้วย role และ permission ที่ถูกต้อง
+
+Acceptance criteria:
+
+- มี route `/login` สำหรับ email/password
+- เมื่อ login สำเร็จ ระบบเรียก `GET /auth/me` หรือใช้ user DTO จาก login เพื่อ set current user
+- current user ต้องมี `role`, `teamId`, `salesProfile`, `highestBadge` และ `permissions`
+- sidebar/profile menu แสดงชื่อ, role, badge และรองรับ logout
+- ถ้า token หมดอายุหรือไม่มี session ต้อง redirect กลับ `/login`
+
 ## Epic 1: Batch Quality Review
 
 ### US-001 Create Quality Review Batch
@@ -133,6 +147,7 @@ Acceptance criteria:
 - เห็น track ทั้งหมดที่ถูก assign พร้อม percent complete
 - track list ต้อง scroll ได้เมื่อมี track จำนวนมาก
 - filter track ตาม category, level และ solution ได้
+- track ที่มี prerequisite ยังไม่ผ่านต้องแสดง locked state พร้อมรายชื่อ track ที่ต้อง complete ก่อน
 - เห็น topic ใน track เช่น knowledge, external view, audio response, recording review และ Senario
 - กดเข้า `track/:id` เพื่อเริ่ม topic หรือดู badge rule ได้
 - topic แบบ Senario ต้องแสดง required score และ source session ที่ผูกไว้
@@ -143,9 +158,10 @@ Acceptance criteria:
 
 Acceptance criteria:
 
-- เข้า `track-management/:id` เพื่อแก้ชื่อ track, category, solution, level, topic order, source ref, required score และ badge threshold ได้
+- เข้า `track-management/:id` เพื่อแก้ชื่อ track, category, solution, level, prerequisite tracks, topic order, source ref, required score และ badge threshold ได้
 - level รองรับ `beginner`, `intermediate`, `advanced`
 - topic type รองรับ knowledge, external view, audio response, recording review และ Senario
+- prerequisite tracks ต้องป้องกัน cycle เช่น A requires B และ B requires A
 - badge unlock rule ต้องคำนวณจาก percent ของ topic ที่ complete
 - ทุกการแก้ไข track ต้องเก็บ audit log
 

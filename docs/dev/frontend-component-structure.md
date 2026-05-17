@@ -93,6 +93,7 @@ Suggested semantic token names:
 
 ```text
 /
+  /login
   /dashboard
   /audio
     /new

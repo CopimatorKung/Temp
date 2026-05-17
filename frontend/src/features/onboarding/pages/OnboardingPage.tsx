@@ -173,7 +173,7 @@ function NewTrackModal({ onClose }: { onClose: () => void }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="new-track-title"
-          className="grid max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-lg border border-border bg-card shadow-panel"
+          className="grid max-h-[92vh] w-full max-w-4xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden rounded-lg border border-border bg-card shadow-panel"
           onMouseDown={(event) => event.stopPropagation()}
         >
           <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
@@ -189,7 +189,7 @@ function NewTrackModal({ onClose }: { onClose: () => void }) {
             </Button>
           </div>
 
-          <div className="grid gap-5 overflow-y-auto p-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="grid min-h-0 gap-5 overflow-y-auto p-5 lg:grid-cols-[minmax(0,1fr)_280px]">
             <div className="grid min-w-0 gap-4">
               <section className="grid gap-4 rounded-lg border border-border bg-background/60 p-4">
                 <div className="grid gap-4 md:grid-cols-2">

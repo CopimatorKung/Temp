@@ -21,6 +21,7 @@
 | [user-stories.md](./user-stories.md) | user stories แยกตาม epic พร้อม acceptance criteria | Product Owner + Test Lead |
 | [user-journeys.md](./user-journeys.md) | user journey ของ sales, manager, admin และ training flow | Product + Design |
 | [testing-guidelines.md](./testing-guidelines.md) | test strategy ที่ดัดแปลงจากตัวอย่าง go-testing-guidelines ให้เข้ากับ Rust/Actix/React | Test Lead |
+| [uat-plan.md](./uat-plan.md) | UAT scenario checklist สำหรับ login, dashboard, review, RAG, voice Senario และ onboarding prerequisite | Product Owner + Test Lead |
 
 ## Development Scope ของ MVP
 

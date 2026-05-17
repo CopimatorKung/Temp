@@ -54,6 +54,166 @@ type ApiError = {
 };
 ```
 
+## 3.1 Auth and Current User Contract
+
+Frontend มีหน้า `/login` และหลังเข้า platform ต้องเรียก current user เพื่อตั้ง role, sidebar badge, profile menu และ permission scope ก่อนโหลด module data
+
+### API Contract Summary
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/auth/login` | login ด้วย email/password และคืน session token พร้อม user profile |
+| `GET` | `/auth/me` | อ่าน current user จาก bearer token/session cookie |
+| `POST` | `/auth/logout` | revoke current session |
+
+### `POST /auth/login`
+
+Request:
+
+```json
+{
+  "email": "pim@example.com",
+  "password": "secret-password"
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "accessToken": "mock.jwt.token",
+    "tokenType": "Bearer",
+    "expiresAt": "2026-05-18T00:00:00+07:00",
+    "user": {
+      "id": "user-pim",
+      "name": "Pimnara K.",
+      "email": "pim@example.com",
+      "role": "manager",
+      "teamId": "team-sme",
+      "avatarUrl": null,
+      "highestBadge": "Voice Architect",
+      "salesProfile": {
+        "salesCode": "PK",
+        "productLine": "Chatbot",
+        "region": "TH",
+        "readinessStatus": "in_progress"
+      }
+    }
+  }
+}
+```
+
+### `GET /auth/me`
+
+Response:
+
+```json
+{
+  "data": {
+    "id": "user-pim",
+    "name": "Pimnara K.",
+    "email": "pim@example.com",
+    "role": "manager",
+    "teamId": "team-sme",
+    "avatarUrl": null,
+    "highestBadge": "Voice Architect",
+    "permissions": [
+      "quality.review",
+      "training.review",
+      "onboarding.manage",
+      "playbook.manage"
+    ],
+    "salesProfile": {
+      "salesCode": "PK",
+      "productLine": "Chatbot",
+      "region": "TH",
+      "language": "th",
+      "readinessStatus": "in_progress"
+    }
+  }
+}
+```
+
+## 3.2 Dashboard Contract
+
+Dashboard ต้องมี backend API เดียวสำหรับ aggregate investor/manager view โดย frontend ไม่ควรคำนวณ metrics ข้ามหลาย module เอง
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/dashboard/overview` | aggregate sales enablement dashboard ตาม role/team/date range |
+
+Query params:
+
+| Param | Example | Description |
+|---|---|---|
+| `teamId` | `team-sme` | optional; manager/admin filter team |
+| `dateFrom` | `2026-05-01` | start date |
+| `dateTo` | `2026-05-31` | end date |
+
+Response:
+
+```json
+{
+  "data": {
+    "range": { "dateFrom": "2026-05-01", "dateTo": "2026-05-31" },
+    "headline": {
+      "title": "Your team is improving",
+      "summary": "Focus on objection handling and product knowledge this week.",
+      "dealLiftPercent": 18
+    },
+    "kpis": [
+      { "key": "dealsWon", "label": "Deals Won", "value": 142, "delta": 18, "direction": "up" },
+      { "key": "winRate", "label": "Win Rate", "value": 24, "unit": "%", "delta": 12, "direction": "up" },
+      { "key": "avgDealSize", "label": "Avg. Deal Size", "value": 48700, "unit": "THB", "delta": 8, "direction": "up" }
+    ],
+    "readinessMetrics": [
+      { "key": "timeToReadiness", "label": "Time To Readiness", "value": 21, "unit": "days", "delta": -23 },
+      { "key": "revenueAtRisk", "label": "Revenue At Risk", "value": 18700000, "unit": "THB", "delta": 12 },
+      { "key": "simulationHours", "label": "Simulation Hours", "value": 1324, "unit": "hrs", "delta": 28 },
+      { "key": "playbookDrift", "label": "Playbook Drift", "value": 23, "unit": "topics", "delta": 8 }
+    ],
+    "momentumSeries": [
+      { "label": "May 12", "value": 12 },
+      { "label": "Jun 11", "value": 78 }
+    ],
+    "readinessHeatmap": [
+      {
+        "team": "Enterprise Team",
+        "scores": {
+          "productKnowledge": 85,
+          "discovery": 72,
+          "objectionHandling": 48,
+          "pricingTerms": 76,
+          "compliance": 84,
+          "executivePitch": 70,
+          "overall": 72
+        }
+      }
+    ],
+    "knowledgeGaps": [
+      {
+        "topic": "Q2 Promotion expiry condition",
+        "category": "Promotion",
+        "failRate": 68,
+        "affectedReps": 35,
+        "revenueRisk": 6200000
+      }
+    ],
+    "lostDealReasons": [
+      { "reason": "Discovery incomplete", "percent": 34 },
+      { "reason": "Weak objection handling", "percent": 27 }
+    ],
+    "onboardingProgress": {
+      "avgProgressPercent": 67,
+      "completed": 18,
+      "inProgress": 9,
+      "notStarted": 5
+    }
+  }
+}
+```
+
 ## 4. Module 1: Quality Review Engine
 
 Module 1 ไม่จำกัดแค่เสียง แต่เป็น review engine สำหรับตรวจ input หลายแบบด้วย rubric/scorecard เฉพาะ use case:
@@ -366,6 +526,8 @@ Knowledge Management เป็น source management layer สำหรับ Ask
 | `POST` | `/knowledge/import-jobs` | upload resource and create async extraction job |
 | `GET` | `/knowledge/import-jobs/:id` | inspect import/extraction/map status |
 | `POST` | `/knowledge/pages/:id/publish` | publish page and queue index sync |
+| `POST` | `/knowledge/pages/:id/index-sync` | force sync published page to BM25 and optional Kotaemon/LEANN |
+| `GET` | `/knowledge/pages/:id/index-status` | inspect BM25/Kotaemon/LEANN sync state for one page |
 | `GET` | `/knowledge/bookmarks` | list user favorite knowledge from Senario/Ask/session review |
 | `POST` | `/knowledge/bookmarks` | favorite a knowledge page or acquired knowledge item |
 | `DELETE` | `/knowledge/bookmarks/:id` | remove favorite |
@@ -438,6 +600,7 @@ Rules:
 - publish เท่านั้นที่ queue BM25/Kotaemon/LEANN sync ได้
 - citation ต้องชี้กลับ `knowledge_page_id` และ optional `artifact_span_id`
 - Kotaemon/LEANN เก็บ external chunk mapping เท่านั้น ไม่เป็น source of truth
+- ถ้า local RAG enabled, Knowledge page ที่ published ต้อง sync เข้า Kotaemon โดย Kotaemon เรียก LEANN เป็น vector/index backend และคืน `externalDocumentId`/`externalChunkId` กลับมาเก็บใน SaleSync
 
 ### 6.3 Ask API Summary
 
@@ -449,20 +612,21 @@ Rules:
 | `POST` | `/playbook-chat-sessions/:id/messages` | ask question in a session |
 | `PATCH` | `/playbook-chat-sessions/:id` | rename/archive session |
 | `POST` | `/playbook-messages/:id/feedback` | mark answer useful/not useful and add note |
+| `POST` | `/playbook-search` | internal/admin debug search through BM25, Kotaemon/LEANN or hybrid provider |
 | `POST` | `/playbook-indexes/sync` | sync approved source to local RAG provider |
 | `GET` | `/playbook-indexes/status` | inspect BM25/Kotaemon/LEANN index state |
 
 ### 6.4 `POST /playbook-indexes/sync`
 
-ใช้สำหรับ admin/internal worker sync approved Playbook Section ไปยัง local RAG provider หลัง publish หรือ update source
+ใช้สำหรับ admin/internal worker sync approved Knowledge Page หรือ Playbook Section ไปยัง local RAG provider หลัง publish หรือ update source
 
 Request:
 
 ```json
 {
   "provider": "kotaemon_leann",
-  "sourceType": "playbook_section",
-  "sourceIds": ["pbs_q2_promo_sme"],
+  "sourceType": "knowledge_page",
+  "sourceIds": ["kpage_q2_promo_sme"],
   "forceReindex": false
 }
 ```
@@ -477,10 +641,78 @@ Response:
     "failed": 0,
     "items": [
       {
-        "sourceId": "pbs_q2_promo_sme",
+        "sourceId": "kpage_q2_promo_sme",
         "externalDocumentId": "kotaemon_doc_001",
+        "externalChunkIds": ["leann_chunk_001", "leann_chunk_002"],
         "status": "indexed",
         "indexedAt": "2026-05-16T20:30:00+07:00"
+      }
+    ]
+  }
+}
+```
+
+### 6.4.1 `GET /playbook-indexes/status`
+
+Response:
+
+```json
+{
+  "data": {
+    "providers": [
+      {
+        "provider": "turso_bm25",
+        "status": "ready",
+        "indexedSources": 42,
+        "lastIndexedAt": "2026-05-16T20:30:00+07:00"
+      },
+      {
+        "provider": "kotaemon_leann",
+        "status": "ready",
+        "kotaemonStatus": "ready",
+        "leannStatus": "ready",
+        "indexedSources": 42,
+        "lastIndexedAt": "2026-05-16T20:30:00+07:00"
+      }
+    ]
+  }
+}
+```
+
+### 6.4.2 `POST /playbook-search`
+
+ใช้สำหรับ admin/debug, UAT และ backend integration test เพื่อยืนยันว่า Knowledge ที่ publish แล้วค้นผ่าน provider ได้และ citation map กลับมาที่ page เดิม
+
+Request:
+
+```json
+{
+  "query": "เงื่อนไขโปร Q2 สำหรับ SME",
+  "provider": "hybrid",
+  "filters": {
+    "product": "chatbot",
+    "tags": ["promotion", "sme"],
+    "effectiveAt": "2026-05-17"
+  },
+  "limit": 5
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "provider": "hybrid",
+    "results": [
+      {
+        "sourceType": "knowledge_page",
+        "sourceId": "kpage_q2_promo_sme",
+        "externalDocumentId": "kotaemon_doc_001",
+        "externalChunkId": "leann_chunk_001",
+        "title": "Q2 Promotion Terms for SME",
+        "snippet": "ใช้กับร้านค้ารายย่อยที่เข้าเกณฑ์ SME...",
+        "score": 0.91
       }
     ]
   }
@@ -1177,6 +1409,24 @@ type AudioSubmissionStatus =
       "status": "published",
       "progressPercent": 72,
       "badgeThresholdPercent": 80,
+      "isLocked": true,
+      "unlockReason": "Complete Chatbot Basic I and Chatbot Basic II first",
+      "prerequisites": [
+        {
+          "trackId": "track-chatbot-basic-1",
+          "title": "Chatbot Basic I",
+          "requiredProgressPercent": 100,
+          "currentProgressPercent": 100,
+          "status": "completed"
+        },
+        {
+          "trackId": "track-chatbot-basic-2",
+          "title": "Chatbot Basic II",
+          "requiredProgressPercent": 100,
+          "currentProgressPercent": 64,
+          "status": "in_progress"
+        }
+      ],
       "topicCount": 4,
       "linkedSenarioCount": 1,
       "badge": {
@@ -1200,6 +1450,23 @@ type AudioSubmissionStatus =
     "categoryId": "solution-specialist",
     "level": "beginner",
     "badgeThresholdPercent": 80,
+    "isLocked": true,
+    "prerequisites": [
+      {
+        "trackId": "track-chatbot-basic-1",
+        "title": "Chatbot Basic I",
+        "requiredProgressPercent": 100,
+        "currentProgressPercent": 100,
+        "status": "completed"
+      },
+      {
+        "trackId": "track-chatbot-basic-2",
+        "title": "Chatbot Basic II",
+        "requiredProgressPercent": 100,
+        "currentProgressPercent": 64,
+        "status": "in_progress"
+      }
+    ],
     "topics": [
       {
         "id": "topic-chatbot-positioning",

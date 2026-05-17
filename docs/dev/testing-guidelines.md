@@ -77,10 +77,13 @@ test_{function_or_use_case}_when_{condition}_should_{expected}
 
 | Domain | Test Cases |
 |---|---|
+| Auth | login success/failure, inactive user blocked, current user projection includes role/profile/badge, expired token rejected |
+| Dashboard | role/team scoping, date range filter, KPI aggregation, empty data returns zero-state DTO |
 | Scorecard | required rule pass/fail, negative phrase hit, conditional rule, evidence timestamp |
 | Quality Review Batch | create batch, add items, sequential processing, partial failure, invalid transition |
 | Audio Submission | valid status transition, invalid transition, owner access |
 | Playbook | draft not searchable, published searchable, expired promotion section excluded |
+| RAG Indexing | Knowledge publish queues BM25 and Kotaemon/LEANN sync, mapping returns source id, provider failure keeps source published but index status failed |
 | Onboarding | topic completion, linked Senario pass/fail, badge threshold unlock, manager sign-off required |
 | Voice Session | start, turn complete, end, abandoned session |
 
@@ -88,6 +91,10 @@ test_{function_or_use_case}_when_{condition}_should_{expected}
 
 | API | Required Tests |
 |---|---|
+| `POST /auth/login` | valid credentials, invalid password, inactive user, rate-limit/lockout behavior |
+| `GET /auth/me` | valid token, expired token, revoked token, includes permissions/sales profile/highest badge |
+| `POST /auth/logout` | revoke current session, idempotent logout |
+| `GET /dashboard/overview` | manager team scope, sales self scope, admin team filter, empty range, invalid date range |
 | `POST /quality-review-batches` | valid payload, missing guidance, forbidden role |
 | `POST /quality-review-batches/:id/items` | add audio items, add `.md/.txt/.doc/.docx` document items, invalid file type, empty extracted text, oversize file, wrong owner |
 | `POST /quality-review-batches/:id/run` | sequential success, empty batch, already running, partial failure |
@@ -107,9 +114,13 @@ test_{function_or_use_case}_when_{condition}_should_{expected}
 | `GET /playbook-chat-sessions/:id` | owner/team access, forbidden, messages ordered by created_at |
 | `POST /playbook-chat-sessions/:id/messages` | answer with citation, abstain, prompt injection text, expired source excluded |
 | `POST /playbook-messages/:id/feedback` | useful/not useful feedback, forbidden, invalid value |
-| `GET /onboarding/tracks` | sales sees assigned tracks, manager sees team tracks, cross-team hidden |
-| `GET /onboarding/tracks/:id` | track detail, topic ordering, badge rule, forbidden track |
-| `PUT /onboarding/tracks/:id` | update topic order, invalid source ref, forbidden sales role |
+| `POST /knowledge/pages/:id/index-sync` | published page sync, draft rejected, Kotaemon failure, LEANN failure, mapping saved |
+| `POST /playbook-indexes/sync` | knowledge_page sync, playbook_section sync, force reindex, invalid provider |
+| `GET /playbook-indexes/status` | BM25 ready, Kotaemon/LEANN ready, degraded provider status |
+| `POST /playbook-search` | BM25 result, Kotaemon/LEANN result, hybrid result, citation maps to Knowledge page, expired source filtered |
+| `GET /onboarding/tracks` | sales sees assigned tracks, manager sees team tracks, cross-team hidden, locked prerequisite state |
+| `GET /onboarding/tracks/:id` | track detail, topic ordering, badge rule, prerequisite progress, forbidden track |
+| `PUT /onboarding/tracks/:id` | update topic order, prerequisite tracks, invalid source ref, prerequisite cycle rejected, forbidden sales role |
 | `POST /onboarding/track-topics/:topicId/complete` | valid completion, score below threshold, duplicate completion |
 | `POST /onboarding/senario-completions` | linked Senario passes topic, score below threshold keeps in progress, badge unlock |
 | `GET /onboarding/users/:id/progress` | self access, manager team access, cross-team forbidden |

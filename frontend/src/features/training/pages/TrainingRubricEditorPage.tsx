@@ -87,13 +87,18 @@ export function TrainingRubricEditorPage() {
         </div>
       </header>
 
-      <main className="grid gap-5 p-5 lg:p-8 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <main className="grid gap-5 p-4 md:p-5 lg:p-6 xl:grid-cols-[minmax(0,1fr)_300px]">
         <section className="grid min-w-0 content-start gap-5">
-          <Card>
-            <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <CardTitle>Rubric Detail</CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">ข้อมูลหลักสำหรับจับคู่ rubric กับ recording batch</p>
+          <section className="rounded-lg border border-border bg-card p-4 shadow-panel">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Rubric context</p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <h2 className="text-lg font-semibold text-foreground">{rubric.name}</h2>
+                  <Badge tone={rubric.status === 'published' ? 'success' : 'muted'}>{rubric.status}</Badge>
+                  <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">v{rubric.version.replace(/^v/, '')}</span>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">metadata ย่อสำหรับจับคู่กับ recording batch โดยไม่แย่งพื้นที่ rule editor</p>
               </div>
               <div className="flex items-center gap-2">
                 {editingDetail ? (
@@ -106,10 +111,10 @@ export function TrainingRubricEditorPage() {
                 )}
                 <IconButton label="Delete rubric" tone="danger" onClick={() => undefined} icon={<FiTrash2 className="h-4 w-4" />} />
               </div>
-            </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
-              {editingDetail ? (
-                <>
+            </div>
+
+            {editingDetail ? (
+              <div className="mt-4 grid gap-3 md:grid-cols-3">
                   <Field label="Rubric name">
                     <Input defaultValue={rubric.name} />
                   </Field>
@@ -131,21 +136,18 @@ export function TrainingRubricEditorPage() {
                   <Field label="Sections">
                     <Input type="number" defaultValue={rubric.sections} />
                   </Field>
-                </>
-              ) : (
-                <>
-                  <ReadOnlyValue label="Rubric name" value={rubric.name} />
-                  <ReadOnlyValue label="Status" value={rubric.status} />
-                  <ReadOnlyValue label="Scenario" value={rubric.scenario} />
-                  <ReadOnlyValue label="Version" value={rubric.version} />
-                  <ReadOnlyValue label="Focus" value={rubric.focus} />
-                  <ReadOnlyValue label="Sections" value={`${rubric.sections}`} />
-                </>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            ) : (
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                <CompactMeta label="Scenario" value={rubric.scenario} />
+                <CompactMeta label="Focus" value={rubric.focus} />
+                <CompactMeta label="Sections" value={`${rubric.sections}`} />
+                <CompactMeta label="Latest use" value="2026-05-16" />
+              </div>
+            )}
+          </section>
 
-          <Card>
+          <Card className="overflow-hidden border-primary/20">
             <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle>Sections and Rules</CardTitle>
@@ -205,22 +207,22 @@ export function TrainingRubricEditorPage() {
           </Card>
         </section>
 
-        <aside className="grid content-start gap-5">
+        <aside className="grid content-start gap-4 xl:sticky xl:top-5">
           <Card>
-            <CardHeader>
+            <CardHeader className="p-4">
               <CardTitle>Validation Status</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-3">
-              <ReadOnlyValue label="Ready tests" value="2/3" />
-              <ReadOnlyValue label="Needs review" value="1" />
-              <ReadOnlyValue label="Latest batch use" value="2026-05-16" />
+            <CardContent className="grid gap-2 p-4 pt-0">
+              <ReadOnlyValue label="Ready tests" value="2/3" compact />
+              <ReadOnlyValue label="Needs review" value="1" compact />
+              <ReadOnlyValue label="Latest batch use" value="2026-05-16" compact />
             </CardContent>
           </Card>
           <Card>
-            <CardHeader>
+            <CardHeader className="p-4">
               <CardTitle>Batch Impact</CardTitle>
             </CardHeader>
-            <CardContent className="grid gap-3 text-sm text-muted-foreground">
+            <CardContent className="grid gap-2 p-4 pt-0 text-sm text-muted-foreground">
               <p className="rounded-lg bg-muted p-3 leading-6">rubric นี้ถูกใช้กับ Recording Review Batch และ score เก่าจะอ้างอิง version เดิมเสมอ</p>
               <p className="rounded-lg bg-muted p-3 leading-6">ถ้าเปลี่ยน rule หรือ weight ควร publish เป็น version ใหม่ก่อนใช้กับ batch ใหม่</p>
             </CardContent>
@@ -236,6 +238,15 @@ function ReadOnlyValue({ label, value, compact = false }: { label: string; value
     <div className={['rounded-lg border border-border bg-muted/45', compact ? 'p-3' : 'p-4'].join(' ')}>
       <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="mt-1 break-words font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function CompactMeta({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-lg border border-border bg-background/70 px-3 py-2">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 truncate text-sm font-semibold text-foreground">{value}</p>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { compile } from 'path-to-regexp';
 
 export const routes = {
   home: '/',
+  login: '/login',
   dashboard: '/app/dashboard',
   audioNew: '/app/audio/new',
   audioDetail: '/app/audio/:submissionId',
