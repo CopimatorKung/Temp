@@ -6,7 +6,7 @@ SaleSync MVP ใช้ Rust + Actix Web เป็น backend หลัก, React
 
 Knowledge/Playbook retrieval เริ่มจาก Turso FTS/BM25 เพื่อคุม source governance และ latency แต่ architecture ต้องรองรับ optional local RAG provider โดยใช้ Kotaemon เป็น RAG management/service layer และ LEANN เป็น local/private vector index backend ผ่าน `PlaybookSearchPort`
 
-Frontend runtime ใช้ React Router สำหรับ routing, `path-to-regexp` สำหรับ route path builder, Zustand สำหรับ client state, `zod` สำหรับ schema validation ใน API/mock boundary, `radash` สำหรับ utility helper, `react-icons` สำหรับ icon และ React Portal สำหรับ modal/drawer/overlay
+Frontend runtime ใช้ React Router สำหรับ routing, `path-to-regexp` สำหรับ route path builder, Zustand สำหรับ client state, `zod` สำหรับ schema validation ใน API/mock boundary, `radash` สำหรับ utility helper, `react-icons` สำหรับ icon, Tiptap สำหรับ Knowledge Markdown editor และ React Portal สำหรับ modal/drawer/overlay
 
 MVP input มี 3 แบบ:
 
@@ -72,17 +72,18 @@ tests/
 | `quality-review-batches` | batch lifecycle, batch item queue, async sequential processing |
 | `audio-submissions` | รับ metadata, upload status, processing lifecycle |
 | `storage` | เก็บและอ่านไฟล์เสียงและเอกสารต้นฉบับ |
-| `document_processing` | validate `.md`, `.txt`, `.doc`, `.docx`, extract/normalize text และสร้าง evidence spans |
+| `document_processing` | validate `.pdf`, `.csv`, `.xlsx`, `.md`, `.txt`, `.doc`, `.docx`, extract/normalize text และสร้าง evidence spans |
 | `botnoi` | wrapper สำหรับ Botnoi ASR/TTS |
 | `transcripts` | เก็บ utterance, timestamp, speaker, confidence |
 | `rules` | required rule, prohibited phrase, semantic rule config |
 | `scorecards` | rubric, scoring result, evidence, override |
-| `playbooks` | playbook metadata, section management, approval status, promotion validity |
+| `playbooks` | legacy playbook metadata, section management, approval status, promotion validity |
+| `knowledge` | book/chapter/topic/page hierarchy, Markdown page editor, import jobs, source governance และ user bookmarks |
 | `playbook_search` | provider port สำหรับ Turso FTS/BM25, Kotaemon/LEANN local RAG, source snippet, citation, abstention policy |
-| `rag_indexing` | sync approved Playbook Sections หรือ normalized documents เข้า local RAG index พร้อม mapping กลับ source id |
+| `rag_indexing` | sync approved Knowledge Pages, Playbook Sections หรือ normalized documents เข้า local RAG index พร้อม mapping กลับ source id |
 | `voice-sessions` | WSS session, turn state, audio event, transcript event |
 | `training` | recording review batch, attempt comparison, Senario result, pitch feedback |
-| `onboarding` | path, module, progress, sign-off |
+| `onboarding` | track, topic, badge, progress, sign-off |
 | `audit` | user action และ system event log |
 
 ## 5. Turso Data Tables เบื้องต้น
@@ -105,18 +106,29 @@ tests/
 | `rules` | id, scorecard_id, section_id, label, type, severity, sort_order, weight, expected_evidence, example, config_json, status |
 | `playbooks` | id, title, owner_id, product, version, status, effective_date, expiry_date |
 | `playbook_sections` | id, playbook_id, section_type, title, question, short_answer, detailed_answer, tags_json, effective_date, expiry_date, status, search_text |
+| `knowledge_books` | id, owner_id, category, title, description, status, sort_order |
+| `knowledge_chapters` | id, book_id, title, description, sort_order, status |
+| `knowledge_topics` | id, chapter_id, title, description, sort_order, status |
+| `knowledge_pages` | id, topic_id, owner_id, title, markdown_body, tags_json, source_type, status, version, effective_date, expiry_date, search_text |
+| `knowledge_import_jobs` | id, user_id, target_book_id, target_chapter_id, target_topic_id, status, total_items, completed_items, error_code |
+| `knowledge_import_artifacts` | id, import_job_id, page_id, file_name, mime_type, storage_uri, normalized_text_uri, extraction_metadata_json, status |
 | `playbook_rag_indexes` | id, provider, source_type, source_id, external_document_id, external_chunk_id, indexed_at, status |
 | `playbook_chat_sessions` | id, user_id, title, product, customer_segment, language, status, created_at, updated_at |
 | `playbook_messages` | id, session_id, user_id, question, answer, citations_json, abstained, feedback, created_at |
 | `voice_sessions` | id, user_id, persona, scenario, status, started_at, ended_at |
-| `voice_session_knowledge_items` | id, voice_session_id, playbook_section_id, title, source_type, focus, read_time, is_recommended |
-| `user_knowledge_bookmarks` | id, user_id, knowledge_item_id or playbook_section_id, source_context, created_at |
+| `voice_session_knowledge_items` | id, voice_session_id, knowledge_page_id or playbook_section_id, title, source_type, focus, read_time, is_recommended |
+| `user_knowledge_bookmarks` | id, user_id, knowledge_page_id or knowledge_item_id, source_context, source_session_id, created_at |
 | `voice_turns` | id, session_id, speaker, text, audio_uri, started_at |
 | `voice_response_latency_events` | id, session_id, ai_turn_id, user_id, action, latency_ms, captured_at |
 | `training_results` | id, user_id, session_id, submission_id, recording_review_batch_id, recording_review_attempt_id, type, score, summary_json |
-| `onboarding_paths` | id, title, version, status |
-| `onboarding_modules` | id, path_id, title, type, required_score |
-| `progress` | id, user_id, module_id, status, score, completed_at |
+| `onboarding_tracks` | id, title, solution, solution_id, category_id, level, version, status, badge_threshold_percent, owner_id |
+| `onboarding_track_categories` | id, name, description, status |
+| `solutions` | id, name, owner, status |
+| `onboarding_track_topics` | id, track_id, sort_index, title, type, source_ref, required_score, required_senario_id |
+| `onboarding_track_assignments` | id, track_id, sales_user_id, assigned_by, status, due_at |
+| `onboarding_topic_progress` | id, assignment_id, topic_id, status, score, completed_source_type, completed_source_id, completed_at |
+| `onboarding_badges` | id, track_id, title, threshold_percent, icon_uri, status |
+| `user_badges` | id, badge_id, user_id, awarded_from_assignment_id, awarded_at |
 | `audit_logs` | id, actor_id, action, entity_type, entity_id, payload_json, created_at |
 
 ## 6. REST API Draft
@@ -134,6 +146,14 @@ tests/
 | `POST` | `/playbooks` | create playbook |
 | `POST` | `/playbooks/:id/sections` | create playbook section |
 | `PATCH` | `/playbook-sections/:id/publish` | publish section |
+| `GET` | `/knowledge/books` | list Knowledge hierarchy summary |
+| `POST` | `/knowledge/books` | create Knowledge book |
+| `POST` | `/knowledge/pages` | create Markdown Knowledge page |
+| `PUT` | `/knowledge/pages/:id` | update page metadata and Markdown body |
+| `POST` | `/knowledge/import-jobs` | upload/import PDF/CSV/XLSX/MD/DOC/DOCX/TXT resource |
+| `POST` | `/knowledge/pages/:id/publish` | publish page and queue index sync |
+| `GET` | `/knowledge/bookmarks` | list user favorite knowledge from Senario/session review |
+| `POST` | `/knowledge/bookmarks` | favorite Knowledge page |
 | `POST` | `/playbook-chat-sessions` | create Ask chat session |
 | `GET` | `/playbook-chat-sessions` | list Ask chat sessions |
 | `GET` | `/playbook-chat-sessions/:id` | get Ask session with messages and citations |
@@ -152,8 +172,23 @@ tests/
 | `GET` | `/training-rubrics` | list scorecard templates where type is training rubric |
 | `GET` | `/training-rubrics/:id` | get training rubric detail for editor |
 | `PATCH` | `/training-rubrics/:id` | update training rubric draft metadata/sections/rules |
-| `GET` | `/onboarding/users/:id/progress` | get user progress |
-| `POST` | `/onboarding/modules/:id/complete` | mark module completed |
+| `GET` | `/onboarding/tracks` | list track library, progress summary and badge status; supports `categoryId`, `level`, `solutionKey` filters |
+| `POST` | `/onboarding/tracks` | create onboarding track |
+| `GET` | `/onboarding/tracks/:id` | get track detail with topics and user progress |
+| `PUT` | `/onboarding/tracks/:id` | update track metadata, topic order, source refs and badge threshold |
+| `POST` | `/onboarding/tracks/:id/assignments` | assign track to sales user/team |
+| `GET` | `/onboarding/users/:id/progress` | get assigned track progress for user |
+| `POST` | `/onboarding/track-topics/:topicId/complete` | mark topic completed after validation |
+| `POST` | `/onboarding/senario-completions` | sync completed Senario session into linked track topic |
+| `GET` | `/onboarding/badges` | list badge catalog and earned badges |
+| `GET` | `/settings/track-categories` | list onboarding track categories with assigned track summary |
+| `POST` | `/settings/track-categories` | create track category |
+| `PUT` | `/settings/track-categories/:id` | update track category |
+| `DELETE` | `/settings/track-categories/:id` | delete track category if no active assigned tracks |
+| `GET` | `/settings/solutions` | list solution catalog for track filters and reporting |
+| `POST` | `/settings/solutions` | create solution catalog item |
+| `PUT` | `/settings/solutions/:id` | update solution catalog item |
+| `DELETE` | `/settings/solutions/:id` | delete solution if no active assigned tracks or reassign target provided |
 
 ## 7. WSS Event Draft
 
@@ -176,6 +211,8 @@ Endpoint: `/ws/voice-sessions`
 `response_latency.recorded` เป็น hidden analytics event ของ Senario session ไม่ต้องแสดงใน UI ผู้ใช้ โดยวัดเวลาตั้งแต่ AI/persona response ถูกส่งถึง frontend จน user เริ่มพิมพ์, กด push-to-talk หรือกดส่งข้อความ ใช้เพื่อวิเคราะห์ hesitation, confidence และ coaching opportunity หลัง session
 
 `voice_session_knowledge_items` เป็นรายการ knowledge ที่ระบบสรุปหลัง session ว่า user ควรเรียนรู้หรืออ่านอะไรเพิ่ม เช่น Playbook, Guardrail, FAQ หรือ Case Study โดยหน้า session detail แสดงใน tab `Knowledge Acquired` และให้ user favorite เก็บไว้ใน `user_knowledge_bookmarks` เพื่อกลับไปอ่านต่อในหน้า Knowledge ได้
+
+Knowledge source flow ใช้ `knowledge_pages` เป็น source of truth สำหรับ Markdown และ citation ส่วนไฟล์ที่ upload จะถูกเก็บเป็น `knowledge_import_artifacts` พร้อม normalized text/span metadata ก่อน map เข้าหน้า page และ publish
 
 ## 8. Processing Flow: Quality Review Batch
 
@@ -239,8 +276,8 @@ Supported audio formats for MVP: `.mp3`, `.wav`, `.m4a`, `.webm`
 - Keep Botnoi client behind service interface so provider can be swapped later
 - Treat document review as the same batch/item pipeline as audio review; only the preprocessing adapter changes from ASR to text extraction/normalization
 - MVP document formats are `.md`, `.txt`, `.doc`, `.docx`; later Google Docs/Drive integration should import/export into the same document item contract
-- MVP playbook flow should use Turso full-text search/BM25 first for stability, then add Kotaemon/LEANN as optional local RAG provider behind `PlaybookSearchPort`
-- Kotaemon/LEANN must not become the source of truth for pricing, promotion, policy or compliance. SaleSync/Turso Playbook remains source of truth and backend must filter effective/expiry/status after retrieval.
+- MVP playbook/knowledge flow should use Turso full-text search/BM25 first for stability, then add Kotaemon/LEANN as optional local RAG provider behind `PlaybookSearchPort`
+- Kotaemon/LEANN must not become the source of truth for pricing, promotion, policy or compliance. SaleSync/Turso Knowledge Page or Playbook remains source of truth and backend must filter effective/expiry/status after retrieval.
 - Voice Senario should preload retrieval context before or between turns; do not run heavy RAG retrieval on every audio chunk.
 - Store raw audio separately from transcript and score data
 - Keep WSS events versioned enough to evolve without breaking frontend
@@ -255,7 +292,7 @@ Supported audio formats for MVP: `.mp3`, `.wav`, `.m4a`, `.webm`
 | Recording review batch | create batch, choose input mode/rubric, record or upload attempts, show attempt trend | own batch/attempt lifecycle, sequential async processing, persist score trend and feedback |
 | Training rubric | render rubric list and validation test table | expose `training_rubrics`, version rubric, enforce published/draft permission |
 | Voice Senario | record microphone, send audio chunks over WSS, play TTS audio, show session state | own WSS protocol, call Botnoi ASR/TTS, maintain conversation state, persist session |
-| Playbook | render search UI, display sections/citations, collect feedback | query PlaybookSearchPort via BM25 or Kotaemon/LEANN, filter status/effective/expiry, compose guided answer |
+| Knowledge/Playbook | render book/chapter/topic/page UI, Markdown editor, imports, bookmarks, display citations, collect feedback | store hierarchy/pages/import artifacts/bookmarks, query PlaybookSearchPort via BM25 or Kotaemon/LEANN, filter status/effective/expiry, compose guided answer |
 | Persona/scenario | let user select persona/scenario | preload persona, scenario and playbook sections, enforce behavior rules |
 | Scoring | display score/evidence, submit manager override | run rule engine, calculate score, store evidence and audit log |
 | State | keep transient UI state in Zustand | keep source of truth in Turso |

@@ -114,15 +114,19 @@ Acceptance criteria:
 
 MVP เริ่มจาก source-first Playbook ที่ admin หรือ owner เขียนคำถาม คำตอบ รายละเอียด ตัวอย่าง และ talk track ไว้ล่วงหน้า จากนั้นใช้ Turso FTS/BM25 สำหรับค้น playbook section ที่อนุมัติแล้ว เพื่อลด latency และคุม citation ให้แน่นก่อน เมื่อ Ask contract และ evaluation set พร้อม ระบบต้องรองรับ optional local RAG ด้วย Kotaemon + LEANN โดยให้ Kotaemon เป็น RAG management/service layer และ LEANN เป็น local/private vector index backend
 
+Knowledge Management ใน UI ใช้แนวคิดเหมือนหนังสือ: `book -> chapter -> topic -> page` เพื่อให้ทีมเขียนและอ่านง่ายกว่า raw document dump แต่ backend ยังสามารถ map page กลับเป็น approved source/citation สำหรับ Ask, Senario และ RAG ได้
+
 Requirements:
 
 - admin/owner สร้าง playbook ได้
-- playbook แบ่งเป็น sections ได้ เช่น FAQ, Product, Promotion, Competitor, Objection, Compliance, Talk Track
-- section รองรับ title, question, short answer, details, examples, do/dont say, tags, product, persona relevance และ status
+- playbook/knowledge book แบ่งเป็น chapter, topic และ page ได้ โดย page เป็น source ที่ใช้ index/citation
+- page รองรับ Markdown editor, preview, title, summary, tags, owner, status, examples, do/dont say, product, persona relevance และ status
+- upload resource รองรับ `.pdf`, `.csv`, `.xlsx`, `.md`, `.doc`, `.docx`, `.txt` แล้ว normalize เป็น page หรือ attachment artifact ก่อน sync เข้า index
 - playbook/section ต้องมี owner, version, status, effective date และ expiry date เมื่อเป็นข้อมูลที่มีช่วงเวลา เช่น promotion
-- ระบบสร้าง full-text index จาก title, question, answer, details และ tags
-- ระบบรองรับ optional local RAG index sync จาก approved section ไปยัง Kotaemon/LEANN โดยยัง map citation กลับมาที่ playbook section เดิม
+- ระบบสร้าง full-text index จาก book/chapter/topic/page title, markdown body, extracted text และ tags
+- ระบบรองรับ optional local RAG index sync จาก approved page ไปยัง Kotaemon/LEANN โดยยัง map citation กลับมาที่ knowledge page เดิม
 - ต้องมี tag taxonomy เพื่อ filter และคุม lifecycle เช่น `product`, `promotion`, `competitor`, `persona`, `segment`, `region`, `effective_status`
+- user favorite knowledge ที่ได้จาก Senario หรือ session review ได้ และหน้า Knowledge ต้องแสดง favorite/bookmark เหล่านี้เพื่ออ่านต่อภายหลัง
 - sales ค้นหรือถามด้วย natural language ได้
 - หน้า Ask ต้องเป็น chat ที่สร้าง session ได้ เห็น session list/history และเปิด session เดิมกลับมาคุยต่อได้
 - หน้า Ask ต้องมีทางเข้า Knowledge Management เพื่อบริหาร Playbook/Playbook Section ที่เป็น source
@@ -139,6 +143,8 @@ Acceptance criteria:
 - manager/admin เห็นคำถามที่ตอบไม่ได้เพื่อปรับ playbook
 - promotion ที่หมดอายุแล้วต้องไม่ถูกใช้เป็นคำตอบ production
 - ไม่มี embedding/vector search ใน MVP
+- admin upload resource แล้วเห็น import job status และ source mapping ก่อน publish/index
+- favorite จาก Senario แสดงในหน้า Knowledge และสามารถเปิด source page ที่เกี่ยวข้องได้
 
 ### Suggested Playbook Sections
 
@@ -232,22 +238,32 @@ Acceptance criteria:
 - AI ตอบกลับด้วยเสียง
 - เมื่อจบ session เห็น score และ coaching recommendation
 
-### Feature F: Onboarding Tracker
+### Feature F: Onboarding Track, Track Management และ Badge
 
-ติดตาม readiness ของ sales ตาม module ที่กำหนด
+ติดตาม readiness ของ sales ผ่าน track ที่รวมหลาย topic เข้าด้วยกัน เช่น company solution, product standard, sales course, external reference, audio response และ Senario practice
 
 Requirements:
 
-- admin/manager สร้าง onboarding path
-- assign path ให้ sales
-- module รองรับ quiz, Q&A drill, recording review, voice Senario และ manager sign-off
-- progress แสดงสถานะต่อ sales และ manager
+- admin/manager สร้างและแก้ไข `track` ได้ผ่าน Track Management
+- track ต้องมี `category`, `solution` และ `level` เพื่อให้ sales/manager filter ได้ เช่น category = Foundation, Solution Specialist, Enterprise; solution = Chatbot, Voicebot, Digital Human, CMS, DocSearch; level = Beginner, Intermediate, Advanced
+- track ประกอบด้วยหลาย `topic` โดย topic type รองรับ `knowledge`, `external_view`, `audio_response`, `recording_review`, และ `senario`
+- topic แบบ audio response ต้องให้ sales ฟังโจทย์หรือเสียงตัวอย่าง แล้วเขียนคำตอบเพื่อให้ AI/manager ประเมิน
+- topic แบบ Senario ต้องผูกกับ Senario session หรือ Meeting Room ได้
+- เมื่อ sales complete topic ตาม percent threshold ระบบจะ unlock badge ให้ sales
+- progress แสดงสถานะราย track, ราย topic, ราย sales และ badge ที่ได้รับ
+- Settings ต้องมีหน้า Track Categories Management และ Solutions Management สำหรับ admin โดยเป็น table CRUD, มี row action `...`, edit/delete, และ delete confirmation
+- track list ต้องรองรับข้อมูลจำนวนมากด้วย scrollable container และ filter ตาม category, level และ solution
 
 Acceptance criteria:
 
-- sales เห็น task ที่ต้องทำ
-- manager เห็น progress รายคนและรายทีม
-- result จาก training session อัปเดต progress ได้
+- sales เห็น track ที่ได้รับ, topic ที่ต้องทำ, progress และ badge criteria
+- sales/manager filter track ด้วย category, level และ solution ได้
+- sales เข้า `track/:id` เพื่อดูรายละเอียด topic และเริ่ม activity ได้
+- manager/admin เข้า `track-management/:id` เพื่อแก้ track, topic order, source, required score และ badge threshold ได้
+- admin เข้า Settings > Track Categories เพื่อจัดหมวด track และเห็น track ที่ assign อยู่ในแต่ละหมวด
+- admin เข้า Settings > Solutions เพื่อจัด catalog solution default ได้แก่ Chatbot, Voicebot, Digital Human, CMS และ DocSearch
+- result จาก Senario, recording review หรือ audio response อัปเดต onboarding progress ได้
+- เมื่อ Senario ที่ผูกไว้ complete และ score ผ่าน threshold ระบบ mark topic เป็น completed และอัปเดต badge percent
 
 ### Feature G: User, Role และ Sales Profile Management
 
@@ -276,7 +292,7 @@ Acceptance criteria:
 | Recording Review Training | Sales upload pitch/mock call -> ระบบประเมิน training rubric -> feedback ถูกบันทึกเข้า onboarding |
 | Voice Senario | Sales เลือก persona หรือ Meeting Room -> คุยเสียงกับ AI ผ่าน WSS/Botnoi -> ระบบสรุป score และ coaching |
 | Playbook Q&A | Sales ถามคำถาม -> ระบบค้น Playbook Section ที่ approved -> ตอบพร้อม citation หรือ abstain |
-| Onboarding Tracking | Sales ทำ task/training -> progress update -> manager sign-off readiness |
+| Onboarding Tracking | Sales ทำ track/topic/training -> progress update -> badge unlock -> manager sign-off readiness |
 
 ## 8. MVP Priority
 
@@ -320,7 +336,7 @@ Acceptance criteria:
 | Training | repeated usage per sales, completed sessions |
 | Voice Senario | session completion rate, ASR/TTS latency, drop rate |
 | Q&A | citation correctness, abstention quality, answer usefulness |
-| Onboarding | module completion rate, time to readiness |
+| Onboarding | track completion rate, topic completion rate, badge unlock rate, time to readiness |
 | Manager Adoption | dashboard weekly active usage, coaching task completion |
 
 ## 12. Business Success Metrics

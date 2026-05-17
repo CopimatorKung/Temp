@@ -292,6 +292,45 @@ sequenceDiagram
     API-->>FE: 201 section_id
 ```
 
+## 10.1 Knowledge Resource Import and Publish
+
+```mermaid
+sequenceDiagram
+    participant Owner as Admin/Owner
+    participant FE as React Knowledge UI
+    participant API as Actix API
+    participant Storage as Object Storage
+    participant Extract as Extraction Worker
+    participant DB as Turso
+    participant RAG as Kotaemon RAG Service
+    participant LEANN as LEANN Local Index
+
+    Owner->>FE: upload PDF/CSV/XLSX/MD/DOC/DOCX/TXT
+    FE->>API: POST /knowledge/import-jobs metadata
+    API->>API: validate role, target book/chapter/topic, file type
+    API->>Storage: create upload targets
+    API->>DB: insert knowledge_import_jobs status=queued
+    API-->>FE: 201 import job + upload targets
+    FE->>Storage: upload files
+    Extract->>Storage: read uploaded files
+    Extract->>Extract: extract/normalize text into markdown or artifact spans
+    Extract->>DB: create knowledge_import_artifacts and draft pages
+    Owner->>FE: review mapping and edit Markdown page
+    FE->>API: PUT /knowledge/pages/:id markdown + metadata
+    API->>DB: update knowledge_pages status=review
+    Owner->>FE: publish page
+    FE->>API: POST /knowledge/pages/:id/publish
+    API->>DB: update status=published and FTS search_text
+    alt local RAG enabled
+        API->>RAG: sync published page + metadata
+        RAG->>LEANN: update local vector index
+        LEANN-->>RAG: chunk ids
+        RAG-->>API: external document/chunk mapping
+        API->>DB: upsert playbook_rag_indexes source_type=knowledge_page
+    end
+    API-->>FE: published + index status
+```
+
 ## 11. Ask Playbook Chat Session
 
 ```mermaid
@@ -350,7 +389,7 @@ sequenceDiagram
     API-->>FE: published + indexed status
 ```
 
-## 12. `GET /onboarding/users/:id/progress`
+## 12. `GET /onboarding/tracks`
 
 ```mermaid
 sequenceDiagram
@@ -358,14 +397,29 @@ sequenceDiagram
     participant API as Actix API
     participant DB as Turso
 
-    FE->>API: GET progress
-    API->>API: check self or manager permission
-    API->>DB: select path, modules, progress, training results
-    DB-->>API: progress dashboard data
-    API-->>FE: 200 progress
+    FE->>API: GET onboarding tracks
+    API->>API: check sales or manager permission
+    API->>DB: select tracks, topic counts, assignment progress, badges
+    DB-->>API: track library and badge summary
+    API-->>FE: 200 tracks
 ```
 
-## 13. `POST /onboarding/modules/:id/complete`
+## 13. `GET /onboarding/tracks/:id`
+
+```mermaid
+sequenceDiagram
+    participant FE as React App
+    participant API as Actix API
+    participant DB as Turso
+
+    FE->>API: GET track detail
+    API->>API: check track visibility and assignment scope
+    API->>DB: select track, topics, source refs, progress, badge criteria
+    DB-->>API: track detail
+    API-->>FE: 200 track with topic progress
+```
+
+## 14. `POST /onboarding/senario-completions`
 
 ```mermaid
 sequenceDiagram
@@ -374,14 +428,15 @@ sequenceDiagram
     participant DB as Turso
     participant Audit as Audit Log
 
-    FE->>API: POST complete module
-    API->>API: validate completion rule
-    API->>DB: upsert progress status=passed or needs_review
-    API->>Audit: log onboarding.module_completed
-    API-->>FE: 200 progress
+    FE->>API: POST completed Senario session and score
+    API->>API: find linked track topic and validate required_score
+    API->>DB: upsert onboarding_topic_progress
+    API->>DB: recalculate track percent and award badge if threshold met
+    API->>Audit: log onboarding.senario_topic_completed
+    API-->>FE: 200 updated track progress and badge state
 ```
 
-## 14. WSS `/ws/voice-sessions`
+## 15. WSS `/ws/voice-sessions`
 
 ```mermaid
 sequenceDiagram

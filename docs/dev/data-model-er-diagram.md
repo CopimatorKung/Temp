@@ -10,10 +10,13 @@ erDiagram
     USERS ||--o{ QUALITY_REVIEW_BATCHES : creates
     USERS ||--o{ RECORDING_REVIEW_BATCHES : creates
     USERS ||--o{ PLAYBOOK_CHAT_SESSIONS : starts
+    USERS ||--o{ KNOWLEDGE_IMPORT_JOBS : uploads
+    USERS ||--o{ USER_KNOWLEDGE_BOOKMARKS : saves
     PLAYBOOK_CHAT_SESSIONS ||--o{ PLAYBOOK_MESSAGES : has
     USERS ||--o{ VOICE_SESSIONS : starts
     USERS ||--o{ TRAINING_RESULTS : receives
-    USERS ||--o{ PROGRESS : owns
+    USERS ||--o{ ONBOARDING_TRACK_ASSIGNMENTS : receives
+    USERS ||--o{ USER_BADGES : earns
     USERS ||--o{ AUDIT_LOGS : acts
 
     QUALITY_REVIEW_BATCHES ||--o{ QUALITY_REVIEW_BATCH_ITEMS : contains
@@ -33,6 +36,13 @@ erDiagram
     RULES ||--o{ SCORE_ITEMS : matched_by
 
     PLAYBOOKS ||--o{ PLAYBOOK_SECTIONS : contains
+    KNOWLEDGE_BOOKS ||--o{ KNOWLEDGE_CHAPTERS : contains
+    KNOWLEDGE_CHAPTERS ||--o{ KNOWLEDGE_TOPICS : contains
+    KNOWLEDGE_TOPICS ||--o{ KNOWLEDGE_PAGES : contains
+    KNOWLEDGE_PAGES ||--o{ KNOWLEDGE_IMPORT_ARTIFACTS : may_have
+    KNOWLEDGE_IMPORT_JOBS ||--o{ KNOWLEDGE_IMPORT_ARTIFACTS : produces
+    KNOWLEDGE_PAGES ||--o{ PLAYBOOK_RAG_INDEXES : indexed_as
+    USER_KNOWLEDGE_BOOKMARKS }o--|| KNOWLEDGE_PAGES : bookmarks
     PLAYBOOK_SECTIONS ||--o{ PLAYBOOK_RAG_INDEXES : indexed_as
     PLAYBOOK_MESSAGES }o--o{ PLAYBOOK_SECTIONS : cites
 
@@ -42,9 +52,15 @@ erDiagram
     VOICE_SESSIONS ||--o{ TRAINING_RESULTS : summarizes
     AUDIO_SUBMISSIONS ||--o{ TRAINING_RESULTS : may_create
 
-    ONBOARDING_PATHS ||--o{ ONBOARDING_MODULES : contains
-    ONBOARDING_MODULES ||--o{ PROGRESS : tracks
-    TRAINING_RESULTS }o--o{ PROGRESS : updates
+    ONBOARDING_TRACK_CATEGORIES ||--o{ ONBOARDING_TRACKS : categorizes
+    SOLUTIONS ||--o{ ONBOARDING_TRACKS : scopes
+    ONBOARDING_TRACKS ||--o{ ONBOARDING_TRACK_TOPICS : contains
+    ONBOARDING_TRACKS ||--o{ ONBOARDING_TRACK_ASSIGNMENTS : assigned_as
+    ONBOARDING_TRACKS ||--o{ ONBOARDING_BADGES : rewards
+    ONBOARDING_TRACK_ASSIGNMENTS ||--o{ ONBOARDING_TOPIC_PROGRESS : tracks
+    ONBOARDING_TRACK_TOPICS ||--o{ ONBOARDING_TOPIC_PROGRESS : completed_by
+    ONBOARDING_BADGES ||--o{ USER_BADGES : awarded_as
+    TRAINING_RESULTS }o--o{ ONBOARDING_TOPIC_PROGRESS : updates
 
     TEAMS {
         string id PK
@@ -262,6 +278,88 @@ erDiagram
         string search_text
     }
 
+    KNOWLEDGE_BOOKS {
+        string id PK
+        string owner_id FK
+        string category
+        string title
+        string description
+        string status
+        int sort_order
+        datetime created_at
+        datetime updated_at
+    }
+
+    KNOWLEDGE_CHAPTERS {
+        string id PK
+        string book_id FK
+        string title
+        string description
+        int sort_order
+        string status
+    }
+
+    KNOWLEDGE_TOPICS {
+        string id PK
+        string chapter_id FK
+        string title
+        string description
+        int sort_order
+        string status
+    }
+
+    KNOWLEDGE_PAGES {
+        string id PK
+        string topic_id FK
+        string owner_id FK
+        string title
+        string markdown_body
+        string tags_json
+        string source_type
+        string status
+        string version
+        date effective_date
+        date expiry_date
+        string search_text
+        datetime published_at
+        datetime updated_at
+    }
+
+    KNOWLEDGE_IMPORT_JOBS {
+        string id PK
+        string user_id FK
+        string target_book_id FK
+        string target_chapter_id FK
+        string target_topic_id FK
+        string status
+        int total_items
+        int completed_items
+        string error_code
+        datetime created_at
+        datetime completed_at
+    }
+
+    KNOWLEDGE_IMPORT_ARTIFACTS {
+        string id PK
+        string import_job_id FK
+        string page_id FK
+        string file_name
+        string mime_type
+        string storage_uri
+        string normalized_text_uri
+        string extraction_metadata_json
+        string status
+    }
+
+    USER_KNOWLEDGE_BOOKMARKS {
+        string id PK
+        string user_id FK
+        string page_id FK
+        string source_context
+        string source_session_id FK
+        datetime created_at
+    }
+
     PLAYBOOK_RAG_INDEXES {
         string id PK
         string provider
@@ -340,28 +438,79 @@ erDiagram
         datetime created_at
     }
 
-    ONBOARDING_PATHS {
+    ONBOARDING_TRACKS {
         string id PK
         string title
+        string solution
+        string solution_id FK
+        string category_id FK
+        string level
         int version
         string status
+        float badge_threshold_percent
+        string owner_id FK
     }
 
-    ONBOARDING_MODULES {
+    ONBOARDING_TRACK_CATEGORIES {
         string id PK
-        string path_id FK
+        string name
+        string description
+        string status
+    }
+
+    SOLUTIONS {
+        string id PK
+        string name
+        string owner
+        string status
+    }
+
+    ONBOARDING_TRACK_TOPICS {
+        string id PK
+        string track_id FK
+        int sort_index
         string title
         string type
+        string source_ref
         float required_score
+        string required_senario_id FK
     }
 
-    PROGRESS {
+    ONBOARDING_TRACK_ASSIGNMENTS {
         string id PK
-        string user_id FK
-        string module_id FK
+        string track_id FK
+        string sales_user_id FK
+        string assigned_by FK
+        string status
+        datetime due_at
+    }
+
+    ONBOARDING_TOPIC_PROGRESS {
+        string id PK
+        string assignment_id FK
+        string topic_id FK
         string status
         float score
+        string completed_source_type
+        string completed_source_id
         datetime completed_at
+    }
+
+    ONBOARDING_BADGES {
+        string id PK
+        string track_id FK
+        string title
+        float threshold_percent
+        string icon_uri
+        string status
+    }
+
+    USER_BADGES {
+        string id PK
+        string badge_id FK
+        string user_id FK
+        string awarded_from_assignment_id FK
+        datetime awarded_at
     }
 
     AUDIT_LOGS {
@@ -380,6 +529,13 @@ erDiagram
 - `audio_submissions` เป็น abstraction หลักของ MVP แทน `calls` เพราะช่วงแรกยังไม่เชื่อม PBX/CTI
 - `users.role` ใช้ role หลัก 3 แบบใน MVP คือ `sales`, `manager`, `admin`
 - `sales_profiles` เก็บข้อมูลที่จำเป็นต่อ coaching/onboarding เท่านั้น ไม่ใช่ HRM profile
+- `onboarding_tracks` คือ learning path หลักสำหรับ sales readiness โดยรวมหลาย topic เข้าเป็น track เดียว
+- `onboarding_tracks.category_id`, `solution_id` และ `level` ใช้ทำ filter/reporting โดย `level` ต้องอยู่ใน `beginner`, `intermediate`, `advanced`
+- `onboarding_track_categories` จัดกลุ่ม track เช่น Foundation, Solution Specialist, Enterprise และต้อง block delete ถ้ายังมี track ใช้งานอยู่
+- `solutions` คือ catalog สำหรับ filter และ assign track โดย default MVP คือ Chatbot, Voicebot, Digital Human, CMS, DocSearch
+- `onboarding_track_topics.type` รองรับ `knowledge`, `external_view`, `audio_response`, `recording_review`, และ `senario`
+- `onboarding_track_topics.required_senario_id` ใช้ผูก topic กับ Senario หรือ Meeting Room; เมื่อ Senario complete และ score ผ่าน `required_score` จะอัปเดต `onboarding_topic_progress`
+- `onboarding_badges.threshold_percent` ใช้ตัดสิน badge unlock จาก percent ของ topic ที่ complete ใน assignment นั้น
 - `recording_review_batches` ใช้เก็บชุดการฝึก pitch/mock call เพื่อเปรียบเทียบ attempt หลายครั้ง เช่น attempt 1, 2, 3
 - `recording_review_attempts.input_mode/source_type` รองรับ `browser_recording` และ `audio_upload`; ทุก attempt ที่เป็นเสียงควรมี `audio_submission_id` เพื่อ reuse storage/transcript pipeline
 - `recording_review_attempts.status` ต้องรองรับ `draft` สำหรับ recording ที่กด stop แล้วแต่ยังไม่ส่งเข้า ASR queue, `queued`, `processing`, `scored`, `failed`
@@ -412,5 +568,9 @@ erDiagram
 | `playbook_rag_indexes` | `(provider, source_type, source_id)`, `(status, indexed_at)`, `(external_document_id)` |
 | `voice_sessions` | `(user_id, started_at)` |
 | `training_results` | `(user_id, created_at)`, `(recording_review_batch_id)`, `(recording_review_attempt_id)` |
-| `progress` | `(user_id, module_id)` |
+| `onboarding_tracks` | `(status, version)`, `(owner_id, status)` |
+| `onboarding_track_topics` | `(track_id, sort_index)`, `(type, required_senario_id)` |
+| `onboarding_track_assignments` | `(sales_user_id, status)`, `(track_id, status)` |
+| `onboarding_topic_progress` | `(assignment_id, topic_id)`, `(completed_source_type, completed_source_id)` |
+| `user_badges` | `(user_id, awarded_at)`, `(badge_id, user_id)` |
 | `audit_logs` | `(entity_type, entity_id)`, `(actor_id, created_at)` |

@@ -70,16 +70,19 @@ Acceptance criteria:
 - ถ้าไม่มี source ต้องตอบว่าไม่พบข้อมูลในแหล่งที่อนุมัติ
 - user ให้ feedback คำตอบได้
 
-### US-006 Manage Playbook Section
+### US-006 Manage Knowledge Book and Page
 
-ในฐานะ admin ฉันต้องการสร้าง playbook section เพื่อให้ sales ใช้เป็น source
+ในฐานะ admin/owner ฉันต้องการสร้าง Knowledge แบบ book, chapter, topic และ page เพื่อให้ sales ใช้เป็น source ที่อ่านง่าย แก้ไขง่าย และอ้างอิงกลับได้
 
 Acceptance criteria:
 
-- section มี owner, version, status, tags, effective date และ expiry date ถ้าเป็น promotion
-- draft section ยังไม่ถูกใช้ใน production answer
-- published section ถูกนำไปค้นหาได้
-- expired promotion section ไม่ถูกใช้ตอบใน production
+- page มี owner, version, status, tags, effective date และ expiry date ถ้าเป็น promotion/pricing
+- user เขียนและ preview Markdown ได้
+- upload resource รองรับ `.pdf`, `.csv`, `.xlsx`, `.md`, `.doc`, `.docx`, `.txt` และสร้าง import job ก่อน publish
+- draft page ยังไม่ถูกใช้ใน production answer
+- published page ถูกนำไปค้นหาและ sync เข้า BM25/Kotaemon/LEANN ได้
+- expired promotion page ไม่ถูกใช้ตอบใน production
+- favorite จาก Senario/session review แสดงใน Knowledge เพื่อกลับมาอ่านภายหลัง
 
 ## Epic 3: Training
 
@@ -121,23 +124,61 @@ Acceptance criteria:
 
 ## Epic 4: Onboarding
 
-### US-010 View Onboarding Tasks
+### US-010 View Onboarding Track
 
-ในฐานะ sales ฉันต้องการเห็น task onboarding ที่ต้องทำ เพื่อรู้ว่าต้องผ่านอะไรบ้างก่อนพร้อมขายจริง
+ในฐานะ sales ฉันต้องการเห็น track, topic, progress และ badge criteria เพื่อรู้ว่าต้องผ่านอะไรบ้างก่อนพร้อมขายจริง
 
 Acceptance criteria:
 
-- เห็น module ทั้งหมดใน path
-- เห็นสถานะ not started, in progress, passed, needs review
-- กดเข้าไปทำ task ได้
+- เห็น track ทั้งหมดที่ถูก assign พร้อม percent complete
+- track list ต้อง scroll ได้เมื่อมี track จำนวนมาก
+- filter track ตาม category, level และ solution ได้
+- เห็น topic ใน track เช่น knowledge, external view, audio response, recording review และ Senario
+- กดเข้า `track/:id` เพื่อเริ่ม topic หรือดู badge rule ได้
+- topic แบบ Senario ต้องแสดง required score และ source session ที่ผูกไว้
 
-### US-011 Manager Sign-Off
+### US-011 Manage Track and Badge
+
+ในฐานะ manager/admin ฉันต้องการสร้างและแก้ track เพื่อกำหนดลำดับการเรียนรู้และ badge ที่ sales จะได้รับ
+
+Acceptance criteria:
+
+- เข้า `track-management/:id` เพื่อแก้ชื่อ track, category, solution, level, topic order, source ref, required score และ badge threshold ได้
+- level รองรับ `beginner`, `intermediate`, `advanced`
+- topic type รองรับ knowledge, external view, audio response, recording review และ Senario
+- badge unlock rule ต้องคำนวณจาก percent ของ topic ที่ complete
+- ทุกการแก้ไข track ต้องเก็บ audit log
+
+### US-011A Manage Track Categories and Solutions
+
+ในฐานะ admin ฉันต้องการจัดการ track category และ solution catalog เพื่อให้ track filter, reporting และ assignment ใช้ข้อมูลเดียวกัน
+
+Acceptance criteria:
+
+- Settings มีหน้า Track Categories Management แยกจากหน้าอื่น
+- Settings มีหน้า Solutions Management แยกจากหน้าอื่น
+- table แต่ละหน้ามี row action `...` ที่เปิด edit/delete action
+- delete ต้องแสดง confirm modal yes/no
+- category row ต้องแสดง track ที่ assign อยู่
+- solution default สำหรับ MVP คือ Chatbot, Voicebot, Digital Human, CMS และ DocSearch
+
+### US-012 Linked Senario Completion
+
+ในฐานะ sales ฉันต้องการให้ Senario ที่ทำผ่านแล้วอัปเดต onboarding track อัตโนมัติ เพื่อไม่ต้องส่งหลักฐานซ้ำ
+
+Acceptance criteria:
+
+- เมื่อ Senario session ที่ผูกกับ topic complete และ score ผ่าน threshold ระบบ mark topic เป็น completed
+- progress track และ badge percent อัปเดตทันที
+- ถ้า score ไม่ผ่าน ระบบแสดงว่า topic ยัง in progress และเก็บ attempt เป็น evidence
+
+### US-013 Manager Sign-Off
 
 ในฐานะ manager ฉันต้องการ sign-off sales ที่ผ่านเกณฑ์ เพื่ออนุมัติ readiness
 
 Acceptance criteria:
 
-- manager เห็น evidence จาก quiz, recording review, voice Senario และ call quality
+- manager เห็น evidence จาก track topic, recording review, voice Senario, audio response และ call quality
 - sign-off ต้องใส่ note ได้
 - ระบบเก็บ audit log
 

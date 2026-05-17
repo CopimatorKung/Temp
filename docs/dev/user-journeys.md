@@ -134,18 +134,55 @@ journey
 5. publish section
 6. Guided Q&A ใช้ section เป็น approved source เมื่อยังไม่หมดอายุ
 
+## 5.1 Admin/Owner: Manage Knowledge Library
+
+```mermaid
+journey
+    title Owner manages Knowledge as a book library
+    section Organize
+      Open Knowledge: 5: Admin, Owner
+      Choose category and book: 5: Admin, Owner
+      Navigate chapter topic page: 5: Admin, Owner
+    section Write
+      Edit Markdown page: 5: Admin, Owner
+      Preview source page: 5: Admin, Owner
+      Upload PDF CSV XLSX MD DOC TXT: 4: Admin, Owner
+    section Govern
+      Review import mapping: 4: Admin, Owner
+      Publish page: 5: Admin, Owner
+      Sync BM25 or Kotaemon LEANN: 4: System
+    section Reuse
+      Open Senario favorites: 5: Sales
+      Read saved knowledge page: 5: Sales
+```
+
+### Flow
+
+1. Owner เปิดหน้า `Knowledge`
+2. เลือก category เช่น product, sales playbook, market intelligence หรือ battlecard
+3. เลือก book แล้วเจาะเข้า chapter, topic และ page
+4. เขียนหรือแก้เนื้อหาใน Markdown editor พร้อม preview
+5. Upload resource ได้ทั้ง `.pdf`, `.csv`, `.xlsx`, `.md`, `.doc`, `.docx`, `.txt`
+6. ระบบสร้าง import job, extract text และให้ owner map เข้า page ก่อน publish
+7. เมื่อ publish แล้ว backend queue BM25 index และ optional Kotaemon/LEANN sync
+8. Sales เห็น favorite จาก Senario/session review ในหน้า Knowledge เพื่ออ่านต่อภายหลัง
+
 ## 6. Sales Onboarding Journey
 
 ```mermaid
 journey
     title Sales completes onboarding
     section Start
-      View assigned path: 5: Sales
-      Complete company module: 4: Sales
+      View assigned track: 5: Sales
+      Open track detail: 5: Sales
+      Complete company solution topic: 4: Sales
     section Practice
       Ask product questions: 5: Sales
       Record or upload pitch attempt: 5: Sales
-      Complete voice Senario: 5: Sales
+      Complete linked Senario topic: 5: Sales
+      Submit audio response: 4: Sales
+    section Reward
+      Unlock badge when threshold is met: 5: Sales
     section Approval
       Manager reviews evidence: 4: Manager
       Manager signs off: 5: Manager
@@ -153,15 +190,24 @@ journey
 
 ### Flow
 
-1. Manager assign onboarding path
-2. Sales ทำ quiz และ training task
-3. Sales สร้าง recording review batch
-4. Sales เลือก training rubric
-5. Sales อัดเสียงใน browser หรือ upload ไฟล์เสียงเป็น attempt
-6. ระบบประเมิน attempt ด้วย rubric และแสดง score/feedback
-7. Sales หรือ manager แก้ชื่อ batch ได้หากต้องแยก scenario/rubric รอบฝึกให้ชัดขึ้น
-8. Sales เปิด attempt เพื่อดู audio playback, ASR transcript, speaker label และ timestamp แบบ SRT/timeline
-9. Sales ทำ attempt เพิ่มเพื่อดู progression
-10. Sales ทำ voice Senario
-11. ระบบรวมคะแนนและ evidence
-12. Manager sign-off readiness
+1. Manager/admin สร้าง track ใน Track Management
+2. Manager assign track ให้ sales หรือทีม
+3. Sales หรือ manager filter track ตาม category, level และ solution เช่น Foundation, Beginner, Chatbot
+4. Sales เปิด `track/:id` เพื่อดู topic, progress และ badge criteria
+5. Sales ทำ topic แบบ Knowledge หรือ External View เพื่ออ่านเอกสาร/แหล่งอ้างอิง
+6. Sales ทำ topic แบบ Audio Response โดยฟังโจทย์แล้วเขียนคำตอบให้ AI/manager ประเมิน
+7. Sales สร้าง recording review batch
+8. Sales เลือก training rubric
+9. Sales อัดเสียงใน browser หรือ upload ไฟล์เสียงเป็น attempt
+10. ระบบประเมิน attempt ด้วย rubric และแสดง score/feedback
+11. Sales ทำ voice Senario หรือ Meeting Room ที่ผูกกับ track
+12. เมื่อ Senario complete และ score ผ่าน threshold ระบบ mark topic เป็น completed
+13. ระบบคำนวณ track percent และ unlock badge เมื่อ complete ตาม threshold
+14. Manager เปิด progress/evidence เพื่อ sign-off readiness
+
+Admin settings journey:
+
+1. Admin เปิด Settings
+2. Admin เข้า Track Categories เพื่อเพิ่ม/แก้/ลบ category และดู track ที่ assign อยู่
+3. Admin เข้า Solutions เพื่อเพิ่ม/แก้/ลบ solution catalog เช่น Chatbot, Voicebot, Digital Human, CMS, DocSearch
+4. เมื่อกด delete ระบบแสดง confirm modal yes/no ก่อนลบทุกครั้ง

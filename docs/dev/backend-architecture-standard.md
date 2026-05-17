@@ -491,4 +491,4 @@ cargo clippy --all-targets --all-features -- \
 | Playbook | `playbook_management`, `playbook_answering` | `playbooks` |
 | Recording Review Training | `recording_review`, `recording_review_processing` | `recording_review_batches`, `recording_review_attempts`, `audio_submissions`, `scorecards` |
 | Voice Senario Training | `voice_roleplay` | `voice_sessions` |
-| Onboarding | `onboarding_progress` | `onboarding` |
+| Onboarding | `onboarding_track`, `onboarding_topic_progress`, `badge_awarding` | `onboarding_tracks`, `onboarding_track_topics`, `onboarding_topic_progress`, `onboarding_badges` |

@@ -349,7 +349,97 @@ Ask/Playbook ต้องคุยกับ SaleSync backend ผ่าน contra
 
 Provider response ต้อง map กลับมายัง SaleSync source id เสมอ เช่น `playbook_section_id` หรือ `document_artifact_id` เพื่อให้ citation, expiry และ role filter ยังอยู่ใน SaleSync
 
-### 6.2 API Summary
+### 6.2 Knowledge Management API
+
+Knowledge Management เป็น source management layer สำหรับ Ask, Senario และ RAG โดยจัด content เป็น `book -> chapter -> topic -> page` และให้ page เป็น citation/source unit หลัก
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/knowledge/books` | list books with chapters/topics/pages summary |
+| `POST` | `/knowledge/books` | create knowledge/playbook book |
+| `PATCH` | `/knowledge/books/:id` | rename/update owner/status |
+| `POST` | `/knowledge/chapters` | create chapter under book |
+| `POST` | `/knowledge/topics` | create topic under chapter |
+| `GET` | `/knowledge/pages/:id` | get page metadata, markdown body, index status |
+| `POST` | `/knowledge/pages` | create markdown page under topic |
+| `PUT` | `/knowledge/pages/:id` | update page markdown and metadata |
+| `POST` | `/knowledge/import-jobs` | upload resource and create async extraction job |
+| `GET` | `/knowledge/import-jobs/:id` | inspect import/extraction/map status |
+| `POST` | `/knowledge/pages/:id/publish` | publish page and queue index sync |
+| `GET` | `/knowledge/bookmarks` | list user favorite knowledge from Senario/Ask/session review |
+| `POST` | `/knowledge/bookmarks` | favorite a knowledge page or acquired knowledge item |
+| `DELETE` | `/knowledge/bookmarks/:id` | remove favorite |
+
+Supported import formats:
+
+| Extension | Expected handling |
+|---|---|
+| `.pdf` | extract text by page, preserve page number for citation |
+| `.csv` | parse rows and map to table/FAQ/price matrix page |
+| `.xlsx` | parse sheets and map selected ranges to pages |
+| `.md` | preserve markdown as editable page source |
+| `.doc`, `.docx` | extract headings/paragraphs and map to pages |
+| `.txt` | normalize plain text to markdown page |
+
+`POST /knowledge/import-jobs` request:
+
+```json
+{
+  "bookId": "kb_q2_sme",
+  "targetChapterId": "kch_promotion",
+  "targetTopicId": "ktopic_terms",
+  "files": [
+    {
+      "fileName": "q2-promo-faq.md",
+      "mimeType": "text/markdown",
+      "sizeBytes": 18240
+    },
+    {
+      "fileName": "pricing-matrix.xlsx",
+      "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "sizeBytes": 93021
+    }
+  ]
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "jobId": "kij_001",
+    "status": "queued",
+    "acceptedFormats": ["pdf", "csv", "xlsx", "md", "doc", "docx", "txt"],
+    "items": [
+      { "fileName": "q2-promo-faq.md", "status": "queued" },
+      { "fileName": "pricing-matrix.xlsx", "status": "queued" }
+    ]
+  }
+}
+```
+
+`PUT /knowledge/pages/:id` request:
+
+```json
+{
+  "title": "Q2 Promotion Terms for SME",
+  "status": "review",
+  "tags": ["promotion", "sme", "compliance"],
+  "markdownBody": "# Q2 Promotion Terms for SME\n\n...",
+  "effectiveDate": "2026-05-01",
+  "expiryDate": "2026-06-30"
+}
+```
+
+Rules:
+
+- backend เป็น source of truth สำหรับ hierarchy, markdown body, import artifacts และ bookmark state
+- publish เท่านั้นที่ queue BM25/Kotaemon/LEANN sync ได้
+- citation ต้องชี้กลับ `knowledge_page_id` และ optional `artifact_span_id`
+- Kotaemon/LEANN เก็บ external chunk mapping เท่านั้น ไม่เป็น source of truth
+
+### 6.3 Ask API Summary
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -362,7 +452,7 @@ Provider response ต้อง map กลับมายัง SaleSync source i
 | `POST` | `/playbook-indexes/sync` | sync approved source to local RAG provider |
 | `GET` | `/playbook-indexes/status` | inspect BM25/Kotaemon/LEANN index state |
 
-### 6.3 `POST /playbook-indexes/sync`
+### 6.4 `POST /playbook-indexes/sync`
 
 ใช้สำหรับ admin/internal worker sync approved Playbook Section ไปยัง local RAG provider หลัง publish หรือ update source
 
@@ -397,7 +487,7 @@ Response:
 }
 ```
 
-### 6.4 `POST /playbook-chat-sessions/:id/messages` Provider Policy
+### 6.5 `POST /playbook-chat-sessions/:id/messages` Provider Policy
 
 Ask message request รองรับ provider policy แต่ frontend ไม่ควรเลือก provider โดยตรงใน production ยกเว้น admin/debug mode
 
@@ -434,7 +524,7 @@ Response:
 }
 ```
 
-### 6.5 `POST /playbook-chat-sessions`
+### 6.6 `POST /playbook-chat-sessions`
 
 Request:
 
@@ -460,7 +550,7 @@ Response:
 }
 ```
 
-### 6.6 `POST /playbook-chat-sessions/:id/messages`
+### 6.7 `POST /playbook-chat-sessions/:id/messages`
 
 Request:
 
@@ -1069,7 +1159,148 @@ type AudioSubmissionStatus =
 }
 ```
 
-## 12. Mock States ที่ต้องมี
+## 12. Onboarding Track Contract
+
+### `GET /onboarding/tracks`
+
+```json
+{
+  "data": [
+    {
+      "id": "track-chatbot-mastery",
+      "title": "Chatbot Mastery",
+      "solution": "Company solution / Chatbot",
+      "solutionKey": "Chatbot",
+      "categoryId": "solution-specialist",
+      "categoryLabel": "Solution Specialist",
+      "level": "beginner",
+      "status": "published",
+      "progressPercent": 72,
+      "badgeThresholdPercent": 80,
+      "topicCount": 4,
+      "linkedSenarioCount": 1,
+      "badge": {
+        "id": "badge-chatbot",
+        "title": "Chatbot Master",
+        "status": "locked"
+      }
+    }
+  ]
+}
+```
+
+### `GET /onboarding/tracks/:id`
+
+```json
+{
+  "data": {
+    "id": "track-chatbot-mastery",
+    "title": "Chatbot Mastery",
+    "solutionKey": "Chatbot",
+    "categoryId": "solution-specialist",
+    "level": "beginner",
+    "badgeThresholdPercent": 80,
+    "topics": [
+      {
+        "id": "topic-chatbot-positioning",
+        "sortIndex": 1,
+        "title": "อ่าน positioning ของ Chatbot",
+        "type": "knowledge",
+        "sourceRef": "knowledge:product-documentation/chatbot-positioning",
+        "status": "completed"
+      },
+      {
+        "id": "topic-chatbot-audio",
+        "sortIndex": 3,
+        "title": "ตอบ audio prompt เรื่อง ROI",
+        "type": "audio_response",
+        "sourceRef": "audio-prompt:roi-objection",
+        "requiredScore": 70,
+        "status": "in_progress"
+      },
+      {
+        "id": "topic-chatbot-senario",
+        "sortIndex": 4,
+        "title": "จบ Senario: Non-tech owner",
+        "type": "senario",
+        "sourceRef": "senario:vr-001",
+        "requiredScore": 75,
+        "status": "in_progress"
+      }
+    ]
+  }
+}
+```
+
+Query params:
+
+| Param | Example | Description |
+|---|---|---|
+| `categoryId` | `solution-specialist` | filter track by category |
+| `level` | `beginner` | `beginner`, `intermediate`, `advanced` |
+| `solutionKey` | `Chatbot` | default solution catalog เช่น Chatbot, Voicebot, Digital Human, CMS, DocSearch |
+
+### `GET /settings/track-categories`
+
+```json
+{
+  "data": [
+    {
+      "id": "solution-specialist",
+      "name": "Solution Specialist",
+      "description": "Track ตาม product หรือ solution",
+      "status": "published",
+      "assignedTracks": [
+        { "id": "track-chatbot-mastery", "title": "Chatbot Mastery" },
+        { "id": "track-voicebot-architect", "title": "Voicebot Architect" }
+      ]
+    }
+  ]
+}
+```
+
+### `GET /settings/solutions`
+
+```json
+{
+  "data": [
+    { "id": "chatbot", "name": "Chatbot", "owner": "Product", "status": "active", "assignedTrackCount": 1 },
+    { "id": "voicebot", "name": "Voicebot", "owner": "Product", "status": "active", "assignedTrackCount": 1 },
+    { "id": "digital-human", "name": "Digital Human", "owner": "Solution", "status": "active", "assignedTrackCount": 1 },
+    { "id": "cms", "name": "CMS", "owner": "Product", "status": "draft", "assignedTrackCount": 0 },
+    { "id": "docsearch", "name": "DocSearch", "owner": "AI Platform", "status": "active", "assignedTrackCount": 0 }
+  ]
+}
+```
+
+Create/update/delete for both settings resources should return structured validation errors and delete must be guarded by confirm UI. Backend should reject delete when a category or solution is still assigned unless a reassign target is provided.
+
+### `POST /onboarding/senario-completions`
+
+```json
+{
+  "senarioSessionId": "vr-001",
+  "userId": "usr_sales_001",
+  "score": 84,
+  "completedAt": "2026-05-17T10:42:00+07:00"
+}
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "trackId": "track-chatbot-mastery",
+    "topicId": "topic-chatbot-senario",
+    "topicStatus": "completed",
+    "trackProgressPercent": 100,
+    "badgeAwarded": true
+  }
+}
+```
+
+## 13. Mock States ที่ต้องมี
 
 | State | ใช้ทดสอบ UI |
 |---|---|
@@ -1083,7 +1314,7 @@ type AudioSubmissionStatus =
 | needs review | manager ต้องตรวจ |
 | override applied | มี manager override |
 
-## 13. Frontend Components ที่ผูกกับ Contract
+## 14. Frontend Components ที่ผูกกับ Contract
 
 | Component | Contract |
 |---|---|
@@ -1094,7 +1325,7 @@ type AudioSubmissionStatus =
 | `EvidenceDrawer` | `scorecard.sections.items.evidence` |
 | `OverrideScoreDialog` | `PATCH /scorecard-results/:id/override` |
 
-## 14. Backend Notes
+## 15. Backend Notes
 
 - backend ต้อง validate `scorecardTemplateId` ว่า match กับ topic/customerSegment/product/region/language จริง
 - backend ต้องเก็บ template version ที่ใช้ประเมินไว้กับ result เสมอ

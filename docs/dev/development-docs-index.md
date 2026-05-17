@@ -40,6 +40,7 @@ MVP จะยังไม่เชื่อมตู้โทรศัพท์,
 | Frontend Validation | zod |
 | Frontend Utilities | radash |
 | Icons | react-icons |
+| Knowledge Editor | Tiptap + Markdown serializer |
 | Backend | Rust + Actix Web |
 | Realtime | WSS ผ่าน Actix WebSocket handler |
 | Database | Turso Database |
@@ -59,7 +60,7 @@ MVP จะยังไม่เชื่อมตู้โทรศัพท์,
 8. ทำ scorecard/rule engine เบื้องต้น
 9. ทำ Playbook management + Playbook Search / Guided Q&A
 10. ทำ WSS voice Senario + Botnoi TTS
-11. ทำ onboarding tracker
+11. ทำ onboarding track, track management และ badge tracker
 12. ทำ pilot, calibration และ regression testing
 
 ## Definition of Ready

@@ -1,13 +1,16 @@
 import { useState, type ReactNode } from 'react';
 import {
+  FiAlertTriangle,
   FiArrowLeft,
   FiCheck,
   FiCheckCircle,
-  FiChevronsDown,
-  FiChevronsUp,
   FiChevronDown,
   FiChevronRight,
   FiEdit2,
+  FiEye,
+  FiFileText,
+  FiMaximize2,
+  FiMinimize2,
   FiPlus,
   FiSave,
   FiTrash2,
@@ -19,7 +22,9 @@ import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import { Field, Input, Select } from '../../../components/ui/Field';
+import { Portal } from '../../../components/ui/Portal';
 import { scorecardTemplates } from '../mock-data';
+import type { ScorecardTemplate } from '../types';
 
 export function TemplateEditorPage() {
   const { templateId } = useParams();
@@ -34,6 +39,7 @@ export function TemplateEditorPage() {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
   const [openRules, setOpenRules] = useState<Record<string, boolean>>({});
   const [isTemplateDetailEditing, setIsTemplateDetailEditing] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const setAllCards = (open: boolean) => {
     setOpenCards({
@@ -101,17 +107,28 @@ export function TemplateEditorPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Badge tone={template.status === 'published' ? 'success' : 'muted'}>{template.status}</Badge>
-            <Button variant="secondary" onClick={() => setAllCards(true)} aria-label="Expand all cards" title="Expand all" className="w-10 px-0">
-              <FiChevronsDown className="h-4 w-4" />
-            </Button>
-            <Button variant="secondary" onClick={() => setAllCards(false)} aria-label="Collapse all cards" title="Collapse all" className="w-10 px-0">
-              <FiChevronsUp className="h-4 w-4" />
-            </Button>
-            <Button variant="secondary">Preview</Button>
-            <Button>
-              <FiSave className="h-4 w-4" />
-              Save draft
-            </Button>
+            <TooltipAction label="Expand all editor cards">
+              <Button variant="secondary" onClick={() => setAllCards(true)} aria-label="Expand all editor cards" className="w-10 px-0">
+                <FiMaximize2 className="h-4 w-4" />
+              </Button>
+            </TooltipAction>
+            <TooltipAction label="Collapse all editor cards">
+              <Button variant="secondary" onClick={() => setAllCards(false)} aria-label="Collapse all editor cards" className="w-10 px-0">
+                <FiMinimize2 className="h-4 w-4" />
+              </Button>
+            </TooltipAction>
+            <TooltipAction label="Preview what this template will evaluate">
+              <Button variant="secondary" onClick={() => setIsPreviewOpen(true)} aria-label="Preview template evaluation report">
+                <FiEye className="h-4 w-4" />
+                Preview
+              </Button>
+            </TooltipAction>
+            <TooltipAction label="Save changes as draft">
+              <Button aria-label="Save template draft">
+                <FiSave className="h-4 w-4" />
+                Save draft
+              </Button>
+            </TooltipAction>
           </div>
         </div>
       </header>
@@ -349,7 +366,175 @@ export function TemplateEditorPage() {
           </CollapsibleCard>
         </aside>
       </main>
+      {isPreviewOpen && (
+        <TemplatePreviewModal
+          template={template}
+          totalRules={totalRules}
+          criticalRules={criticalRules}
+          onClose={() => setIsPreviewOpen(false)}
+        />
+      )}
     </div>
+  );
+}
+
+function TemplatePreviewModal({
+  template,
+  totalRules,
+  criticalRules,
+  onClose,
+}: {
+  template: ScorecardTemplate;
+  totalRules: number;
+  criticalRules: number;
+  onClose: () => void;
+}) {
+  const highRiskRules = template.sections.flatMap((section) =>
+    section.items
+      .filter((item) => item.severity === 'critical' || item.severity === 'high')
+      .map((item) => ({ ...item, sectionLabel: section.label })),
+  );
+
+  return (
+    <Portal>
+      <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/20 p-4 backdrop-blur-sm" role="presentation">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="template-preview-title"
+          className="grid max-h-[88vh] w-full max-w-4xl overflow-hidden rounded-lg border border-border bg-card shadow-soft"
+        >
+          <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Template preview report</p>
+              <h2 id="template-preview-title" className="mt-1 text-xl font-semibold text-foreground">
+                {template.name}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                รายงานตัวอย่างว่า template นี้จะตรวจอะไร ก่อนนำไปใช้กับ batch/source จริง
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close template preview"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground transition hover:bg-card hover:text-foreground"
+            >
+              <FiX className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="grid max-h-[calc(88vh-142px)] gap-5 overflow-y-auto p-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+            <section className="grid content-start gap-4">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <PreviewMetric label="Topic" value={template.topic} />
+                <PreviewMetric label="Segment" value={template.customerSegment} />
+                <PreviewMetric label="Product" value={template.product} />
+                <PreviewMetric label="Language" value={template.language.toUpperCase()} />
+              </div>
+
+              <div className="rounded-lg border border-border bg-muted/60 p-4">
+                <div className="flex items-center gap-2">
+                  <FiFileText className="h-4 w-4 text-primary" />
+                  <h3 className="font-semibold text-foreground">What this template evaluates</h3>
+                </div>
+                <div className="mt-4 grid gap-3">
+                  {template.sections.map((section) => (
+                    <div key={section.id} className="rounded-lg border border-border bg-card p-3">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">{section.label}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {section.items.length} rules · {section.weight} weight
+                          </p>
+                        </div>
+                        <Badge tone="muted">{section.sortIndex ? `section ${section.sortIndex}` : 'section'}</Badge>
+                      </div>
+                      <div className="mt-3 grid gap-2">
+                        {section.items.map((item) => (
+                          <div key={item.id} className="grid gap-2 rounded-lg border border-border bg-background p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-foreground">{item.label}</p>
+                              <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.expectedEvidence}</p>
+                            </div>
+                            <div className="flex flex-wrap items-start gap-2">
+                              <Badge tone={item.severity === 'critical' ? 'danger' : item.severity === 'high' ? 'warning' : 'muted'}>
+                                {item.severity}
+                              </Badge>
+                              <Badge tone="muted">{item.weight} pts</Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <aside className="grid content-start gap-4">
+              <div className="rounded-lg border border-border bg-muted/60 p-4">
+                <h3 className="font-semibold text-foreground">Evaluation summary</h3>
+                <div className="mt-3 grid gap-2">
+                  <PreviewMetric label="Version" value={`v${template.version}`} />
+                  <PreviewMetric label="Total weight" value={`${template.totalWeight}`} />
+                  <PreviewMetric label="Sections" value={`${template.sections.length}`} />
+                  <PreviewMetric label="Rules" value={`${totalRules}`} />
+                  <PreviewMetric label="Critical rules" value={`${criticalRules}`} />
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
+                <div className="flex items-center gap-2">
+                  <FiAlertTriangle className="h-4 w-4 text-warning" />
+                  <h3 className="font-semibold text-foreground">High attention rules</h3>
+                </div>
+                <div className="mt-3 grid gap-2">
+                  {highRiskRules.map((item) => (
+                    <div key={item.id} className="rounded-lg border border-border bg-card p-3">
+                      <p className="text-xs font-semibold uppercase text-muted-foreground">{item.sectionLabel}</p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">{item.label}</p>
+                      <Badge tone={item.severity === 'critical' ? 'danger' : 'warning'}>{item.severity}</Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-border bg-card p-4">
+                <h3 className="font-semibold text-foreground">Supported sources</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Audio call, uploaded recording, document, article หรือ prepared answer ที่เลือกใช้กับ batch ได้
+                </p>
+              </div>
+            </aside>
+          </div>
+
+          <div className="flex justify-end border-t border-border px-5 py-4">
+            <Button variant="secondary" onClick={onClose}>Close preview</Button>
+          </div>
+        </div>
+      </div>
+    </Portal>
+  );
+}
+
+function PreviewMetric({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-3">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 min-w-0 truncate text-sm font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function TooltipAction({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <span className="group relative inline-flex">
+      <span className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 w-max max-w-56 -translate-x-1/2 rounded-md border border-border bg-foreground px-2.5 py-1.5 text-xs font-medium text-background opacity-0 shadow-soft transition group-hover:opacity-100 group-focus-within:opacity-100">
+        {label}
+      </span>
+      {children}
+    </span>
   );
 }
 

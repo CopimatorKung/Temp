@@ -4,6 +4,7 @@ import {
   FiArrowLeft,
   FiBarChart2,
   FiClipboard,
+  FiDownload,
   FiFileText,
   FiLayers,
   FiMic,
@@ -11,6 +12,7 @@ import {
   FiPlay,
   FiTrendingUp,
   FiRefreshCw,
+  FiUploadCloud,
   FiX,
 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -170,6 +172,23 @@ export function AudioQualityReviewPage() {
     setIsNewBatchOpen(false);
   };
 
+  const uploadFilesToBatch = (batchId: string, files: BatchFile[]) => {
+    setBatches((current) =>
+      current.map((batch) =>
+        batch.id === batchId
+          ? {
+              ...batch,
+              status: batch.status === 'completed' ? 'queued' : batch.status,
+              files: [...batch.files, ...files],
+            }
+          : batch,
+      ),
+    );
+    if (files[0]) {
+      setSelectedFileId(files[0].id);
+    }
+  };
+
   const runBatch = async (batchId: string) => {
     if (runningBatchId) return;
     setRunningBatchId(batchId);
@@ -283,6 +302,7 @@ export function AudioQualityReviewPage() {
                 runningBatchId={runningBatchId}
                 onBack={() => setSelectedBatchId(undefined)}
                 onRun={(batchId) => void runBatch(batchId)}
+                onUploadFiles={uploadFilesToBatch}
                 onSelectFile={setSelectedFileId}
                 selectedEvidenceItemId={selectedEvidenceItemId}
                 onSelectEvidenceItem={selectEvidenceItem}
@@ -561,6 +581,7 @@ function BatchDetail({
   runningBatchId,
   onBack,
   onRun,
+  onUploadFiles,
   onSelectFile,
   selectedEvidenceItemId,
   onSelectEvidenceItem,
@@ -571,6 +592,7 @@ function BatchDetail({
   runningBatchId?: string;
   onBack: () => void;
   onRun: (batchId: string) => void;
+  onUploadFiles: (batchId: string, files: BatchFile[]) => void;
   onSelectFile: (fileId: string) => void;
   selectedEvidenceItemId?: string;
   onSelectEvidenceItem: (itemId: string) => void;
@@ -578,6 +600,8 @@ function BatchDetail({
   const selectedFile = batch.files.find((file) => file.id === selectedFileId) ?? batch.files[0];
   const hasResult = selectedFile?.status === 'scored';
   const isRunning = runningBatchId === batch.id;
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   return (
     <div className="grid gap-5">
@@ -591,10 +615,20 @@ function BatchDetail({
             <CardTitle>{batch.name}</CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">{batch.guidance}</p>
           </div>
-          <Button onClick={() => onRun(batch.id)} disabled={isRunning || batch.status === 'completed'}>
-            <FiPlay className="h-4 w-4" />
-            {isRunning ? 'Running async' : batch.status === 'completed' ? 'Completed' : 'Run batch'}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => setReportModalOpen(true)}>
+              <FiDownload className="h-4 w-4" />
+              Report
+            </Button>
+            <Button variant="secondary" onClick={() => setUploadModalOpen(true)}>
+              <FiUploadCloud className="h-4 w-4" />
+              Upload files
+            </Button>
+            <Button onClick={() => onRun(batch.id)} disabled={isRunning || batch.status === 'completed'}>
+              <FiPlay className="h-4 w-4" />
+              {isRunning ? 'Running async' : batch.status === 'completed' ? 'Completed' : 'Run batch'}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-4">
           <BatchMetric label="Status" value={batch.status} />
@@ -681,8 +715,358 @@ function BatchDetail({
           )}
         </aside>
       </div>
+
+      {uploadModalOpen && (
+        <QualityBatchUploadModal
+          batch={batch}
+          onClose={() => setUploadModalOpen(false)}
+          onUpload={(files) => {
+            onUploadFiles(batch.id, files);
+            setUploadModalOpen(false);
+          }}
+        />
+      )}
+
+      {reportModalOpen && (
+        <QualityBatchReportModal
+          batch={batch}
+          completedFiles={completedFiles}
+          onClose={() => setReportModalOpen(false)}
+        />
+      )}
     </div>
   );
+}
+
+function QualityBatchReportModal({
+  batch,
+  completedFiles,
+  onClose,
+}: {
+  batch: ReviewBatch;
+  completedFiles: number;
+  onClose: () => void;
+}) {
+  const scoredFiles = batch.files.filter((file) => file.status === 'scored' && typeof file.score === 'number');
+  const averageScore = scoredFiles.length > 0
+    ? Math.round(scoredFiles.reduce((sum, file) => sum + (file.score ?? 0), 0) / scoredFiles.length)
+    : 0;
+  const queuedFiles = batch.files.filter((file) => file.status === 'queued').length;
+  const failedFiles = batch.files.filter((file) => file.status === 'failed').length;
+  const progress = Math.round((completedFiles / batch.files.length) * 100);
+
+  return (
+    <Portal>
+      <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/30 p-4 backdrop-blur-sm" role="presentation" onMouseDown={onClose}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="quality-report-dialog-title"
+          className="grid max-h-[92vh] w-full max-w-3xl overflow-hidden rounded-lg border border-border bg-card text-foreground shadow-panel"
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Quality report</p>
+              <h2 id="quality-report-dialog-title" className="mt-1 text-base font-semibold">
+                Export evaluation report
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                รวมผลประเมินทุกไฟล์ใน batch พร้อม score, evidence summary, transcript และสถานะ queue
+              </p>
+            </div>
+            <button
+              type="button"
+              aria-label="Close report dialog"
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            >
+              <FiX className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="grid gap-4 overflow-y-auto p-5">
+            <div className="rounded-lg border border-border bg-muted p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold">{batch.name}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{batch.guidance}</p>
+                </div>
+                <Badge tone={batch.status === 'completed' ? 'success' : batch.status === 'processing' ? 'warning' : 'muted'}>
+                  {batch.status}
+                </Badge>
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-4">
+                <BatchMetric label="Overall score" value={scoredFiles.length > 0 ? `${averageScore}/100` : '-'} />
+                <BatchMetric label="Scored" value={`${completedFiles}/${batch.files.length}`} />
+                <BatchMetric label="Queued" value={`${queuedFiles}`} />
+                <BatchMetric label="Failed" value={`${failedFiles}`} />
+              </div>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-border">
+                <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">{progress}% complete before export</p>
+            </div>
+
+            <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_260px]">
+              <div className="rounded-lg border border-border bg-white p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <FiClipboard className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-semibold">Report contents</p>
+                </div>
+                <div className="grid gap-2 text-sm">
+                  {[
+                    'Batch summary and file-level status',
+                    'Scorecard result by template section',
+                    'Evidence highlights and risk flags',
+                    'Transcript or document snippet references',
+                    'Manager recommendation and follow-up actions',
+                  ].map((item) => (
+                    <div key={item} className="flex items-start gap-2 rounded-lg border border-border bg-card p-3">
+                      <FiClipboard className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid content-start gap-3">
+                <div className="rounded-lg border border-border bg-white p-4">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Export format</p>
+                  <div className="mt-3 grid gap-2">
+                    <Badge tone="muted">PDF report</Badge>
+                    <Badge tone="muted">CSV score table</Badge>
+                    <Badge tone="muted">JSON evidence data</Badge>
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border bg-white p-4">
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">Mock destination</p>
+                  <p className="mt-2 text-sm font-semibold">quality-report-{batch.id}.pdf</p>
+                  <p className="mt-1 text-xs text-muted-foreground">พร้อม export เมื่อ backend report worker พร้อมใช้งาน</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-border bg-white">
+              <div className="border-b border-border p-4">
+                <p className="text-sm font-semibold">Files included</p>
+              </div>
+              <div className="max-h-64 overflow-y-auto">
+                <table className="min-w-full border-collapse text-left text-sm">
+                  <thead className="bg-muted text-xs uppercase text-muted-foreground">
+                    <tr>
+                      <th className="px-4 py-3 font-semibold">File</th>
+                      <th className="px-4 py-3 font-semibold">Type</th>
+                      <th className="px-4 py-3 font-semibold">Status</th>
+                      <th className="px-4 py-3 font-semibold">Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {batch.files.map((file) => (
+                      <tr key={file.id} className="border-t border-border">
+                        <td className="px-4 py-3 font-medium">{file.name}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{file.sourceType}</td>
+                        <td className="px-4 py-3">
+                          <Badge tone={file.status === 'scored' ? 'success' : file.status === 'processing' ? 'warning' : 'muted'}>
+                            {file.status}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 font-semibold">{file.score ? `${file.score}/100` : '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button>
+              <FiDownload className="h-4 w-4" />
+              Export report
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Portal>
+  );
+}
+
+function QualityBatchUploadModal({
+  batch,
+  onClose,
+  onUpload,
+}: {
+  batch: ReviewBatch;
+  onClose: () => void;
+  onUpload: (files: BatchFile[]) => void;
+}) {
+  const [uploadMode, setUploadMode] = useState<'audio' | 'document' | 'mixed'>(batch.sourceType);
+  const mockFiles = buildQualityUploadFiles(uploadMode);
+  const audioCount = mockFiles.filter((file) => file.sourceType === 'audio').length;
+  const documentCount = mockFiles.filter((file) => file.sourceType === 'document').length;
+
+  const handleUpload = () => {
+    const stamp = Date.now();
+    onUpload(
+      mockFiles.map((file, index) => ({
+        ...file,
+        id: `file_${stamp}_${index + 1}`,
+        status: 'queued',
+      })),
+    );
+  };
+
+  return (
+    <Portal>
+      <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/30 p-4 backdrop-blur-sm" role="presentation" onMouseDown={onClose}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="quality-upload-dialog-title"
+          className="grid max-h-[92vh] w-full max-w-2xl overflow-hidden rounded-lg border border-border bg-card text-foreground shadow-panel"
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Quality batch upload</p>
+              <h2 id="quality-upload-dialog-title" className="mt-1 text-base font-semibold">
+                Upload files to batch
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                เพิ่มหลายไฟล์เข้า batch เดิม แล้วให้ระบบ process ตาม guidance template ที่เลือกไว้
+              </p>
+            </div>
+            <button
+              type="button"
+              aria-label="Close upload dialog"
+              onClick={onClose}
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            >
+              <FiX className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="grid gap-4 overflow-y-auto p-5">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <BatchMetric label="Destination batch" value={batch.name} />
+              <BatchMetric label="Template" value={batch.guidance} />
+              <BatchMetric label="Current files" value={`${batch.files.length}`} />
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <UploadModeButton active={uploadMode === 'audio'} onClick={() => setUploadMode('audio')} icon={<FiMic />}>
+                Audio
+              </UploadModeButton>
+              <UploadModeButton active={uploadMode === 'document'} onClick={() => setUploadMode('document')} icon={<FiFileText />}>
+                Documents
+              </UploadModeButton>
+              <UploadModeButton active={uploadMode === 'mixed'} onClick={() => setUploadMode('mixed')} icon={<FiLayers />}>
+                Mixed
+              </UploadModeButton>
+            </div>
+
+            <div className="rounded-lg border border-dashed border-primary/30 bg-primary/5 p-5 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <FiUploadCloud className="h-6 w-6" />
+              </div>
+              <p className="mt-3 text-sm font-semibold">Drop files here or choose source</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                รองรับ mp3, wav, m4a, webm, pdf, md, doc, docx และ txt สำหรับ multi upload ใน batch เดียว
+              </p>
+              <Button className="mt-4" variant="secondary">
+                <FiUploadCloud className="h-4 w-4" />
+                Choose files
+              </Button>
+            </div>
+
+            <div className="rounded-lg border border-border bg-muted/50 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold">Mock upload queue</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {mockFiles.length} files ready · {audioCount} audio · {documentCount} documents
+                  </p>
+                </div>
+                <Badge tone="muted">queued after upload</Badge>
+              </div>
+              <div className="mt-3 grid gap-2">
+                {mockFiles.map((file) => (
+                  <div key={file.name} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-white p-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary">
+                        {file.sourceType === 'audio' ? <FiMic className="h-4 w-4" /> : <FiFileText className="h-4 w-4" />}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">{file.name}</p>
+                        <p className="text-xs text-muted-foreground">{file.sourceType} review source</p>
+                      </div>
+                    </div>
+                    <Badge tone="muted">ready</Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpload}>
+              <FiPlus className="h-4 w-4" />
+              Add {mockFiles.length} files
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Portal>
+  );
+}
+
+function UploadModeButton({
+  active,
+  onClick,
+  icon,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        'flex min-h-10 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition',
+        active ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-white text-foreground hover:bg-muted',
+      ].join(' ')}
+    >
+      <span className="text-base">{icon}</span>
+      {children}
+    </button>
+  );
+}
+
+function buildQualityUploadFiles(mode: 'audio' | 'document' | 'mixed'): BatchFile[] {
+  const audioFiles: BatchFile[] = [
+    { id: 'upload-audio-1', name: 'mock-call-04.webm', sourceType: 'audio', status: 'queued' },
+    { id: 'upload-audio-2', name: 'follow-up-pitch-05.m4a', sourceType: 'audio', status: 'queued' },
+  ];
+  const documentFiles: BatchFile[] = [
+    { id: 'upload-doc-1', name: 'q2-promo-faq.md', sourceType: 'document', status: 'queued' },
+    { id: 'upload-doc-2', name: 'landing-copy-review.docx', sourceType: 'document', status: 'queued' },
+    { id: 'upload-doc-3', name: 'prohibited-claim-check.txt', sourceType: 'document', status: 'queued' },
+  ];
+
+  if (mode === 'audio') return audioFiles;
+  if (mode === 'document') return documentFiles;
+  return [audioFiles[0], documentFiles[0], documentFiles[1]];
 }
 
 function BatchOverviewPanel({

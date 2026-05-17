@@ -8,6 +8,7 @@ import { LandingPage } from '../features/landing/pages/LandingPage';
 import { NotFoundPage } from '../features/not-found/pages/NotFoundPage';
 import { OnboardingPage } from '../features/onboarding/pages/OnboardingPage';
 import { PlaybooksPage } from '../features/playbooks/pages/PlaybooksPage';
+import { ProfilePage } from '../features/profile/pages/ProfilePage';
 import { RecordingReviewPage } from '../features/training/pages/RecordingReviewPage';
 import { TrainingAskPage } from '../features/training/pages/TrainingAskPage';
 import { TrainingRubricEditorPage } from '../features/training/pages/TrainingRubricEditorPage';
@@ -26,7 +27,8 @@ export function App() {
         <Route path="/training/voice-roleplay" element={<Navigate to={routes.voiceRoleplay} replace />} />
         <Route path="/playbooks" element={<Navigate to={routes.playbooks} replace />} />
         <Route path="/onboarding/me" element={<Navigate to={routes.onboardingMe} replace />} />
-        <Route path="/admin/users" element={<Navigate to={routes.adminUsers} replace />} />
+        <Route path="/admin/users" element={<Navigate to={routes.settings} replace />} />
+        <Route path="/settings" element={<Navigate to={routes.settings} replace />} />
         <Route
           path="/app/*"
           element={
@@ -44,8 +46,17 @@ export function App() {
                 <Route path="training/voice-roleplay/:sessionId" element={<VoiceRoleplayPage />} />
                 <Route path="training/voice-roleplay" element={<VoiceRoleplayPage />} />
                 <Route path="onboarding/me" element={<OnboardingPage />} />
+                <Route path="onboarding/track/:trackId" element={<OnboardingPage />} />
+                <Route path="onboarding/track-management/:managementTrackId" element={<OnboardingPage />} />
                 <Route path="playbooks" element={<PlaybooksPage />} />
-                <Route path="admin/users" element={<AdminUsersPage />} />
+                <Route path="knowledge/book/:bookId" element={<PlaybooksPage />} />
+                <Route path="knowledge/:categoryId" element={<PlaybooksPage />} />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="settings" element={<AdminUsersPage />} />
+                <Route path="settings/theme" element={<AdminUsersPage view="theme" />} />
+                <Route path="settings/track-categories" element={<AdminUsersPage view="track-categories" />} />
+                <Route path="settings/solutions" element={<AdminUsersPage view="solutions" />} />
+                <Route path="admin/users" element={<Navigate to={routes.settings} replace />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </AppShell>

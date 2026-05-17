@@ -81,7 +81,7 @@ test_{function_or_use_case}_when_{condition}_should_{expected}
 | Quality Review Batch | create batch, add items, sequential processing, partial failure, invalid transition |
 | Audio Submission | valid status transition, invalid transition, owner access |
 | Playbook | draft not searchable, published searchable, expired promotion section excluded |
-| Onboarding | score passes module, score below threshold, manager sign-off required |
+| Onboarding | topic completion, linked Senario pass/fail, badge threshold unlock, manager sign-off required |
 | Voice Session | start, turn complete, end, abandoned session |
 
 ## 6. API Test Matrix
@@ -107,6 +107,11 @@ test_{function_or_use_case}_when_{condition}_should_{expected}
 | `GET /playbook-chat-sessions/:id` | owner/team access, forbidden, messages ordered by created_at |
 | `POST /playbook-chat-sessions/:id/messages` | answer with citation, abstain, prompt injection text, expired source excluded |
 | `POST /playbook-messages/:id/feedback` | useful/not useful feedback, forbidden, invalid value |
+| `GET /onboarding/tracks` | sales sees assigned tracks, manager sees team tracks, cross-team hidden |
+| `GET /onboarding/tracks/:id` | track detail, topic ordering, badge rule, forbidden track |
+| `PUT /onboarding/tracks/:id` | update topic order, invalid source ref, forbidden sales role |
+| `POST /onboarding/track-topics/:topicId/complete` | valid completion, score below threshold, duplicate completion |
+| `POST /onboarding/senario-completions` | linked Senario passes topic, score below threshold keeps in progress, badge unlock |
 | `GET /onboarding/users/:id/progress` | self access, manager team access, cross-team forbidden |
 
 ## 6.1 Backend Error Handling Test Matrix
@@ -148,7 +153,7 @@ test_{function_or_use_case}_when_{condition}_should_{expected}
 | `TranscriptViewer` | timestamp rendering, empty transcript, speaker labels |
 | `ScorecardSummary` | score bands, critical flags, evidence open |
 | `VoiceSessionPanel` | state transitions, partial transcript, TTS playback, disconnect |
-| `OnboardingProgress` | status rendering, locked module, passed module |
+| `OnboardingProgress` | track percent, topic status rendering, locked topic, passed linked Senario topic, badge earned state |
 | `CitationList` | source display, missing citation warning |
 
 ## 9. Mock Strategy

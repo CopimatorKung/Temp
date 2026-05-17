@@ -150,20 +150,23 @@ Exit criteria:
 
 Scope:
 
-- Playbook และ Playbook Section CRUD
-- section types: FAQ, Product, Pricing, Promotion, Competitor, Objection, Compliance, Talk Track
+- Knowledge/Playbook CRUD แบบ `book -> chapter -> topic -> page`
+- Markdown page editor และ preview สำหรับ source content
+- import resource job สำหรับ `.pdf`, `.csv`, `.xlsx`, `.md`, `.doc`, `.docx`, `.txt`
+- page/section types: FAQ, Product, Pricing, Promotion, Competitor, Objection, Compliance, Talk Track
 - tags และ lifecycle
 - effective_date/expiry_date สำหรับ promotion/pricing
 - search API
 - guided answer API
 - PlaybookSearchPort interface ที่สลับ BM25, Kotaemon/LEANN หรือ hybrid ได้
-- optional RAG index sync contract สำหรับ approved Playbook Sections
+- optional RAG index sync contract สำหรับ approved Knowledge Pages หรือ Playbook Sections
 - Ask chat session API: create/list/detail/message/feedback
+- user knowledge bookmarks จาก Senario/session review
 - abstain เมื่อไม่มี approved source
 
 Deliverables:
 
-- Playbook admin UI mock หรือ basic real UI
+- Knowledge Management UI mock หรือ basic real UI พร้อม category, book tree, Markdown editor, upload queue และ Senario favorite
 - Turso FTS/BM25 index
 - provider adapter stub สำหรับ Kotaemon/LEANN local RAG
 - API สำหรับ search/answer
@@ -233,9 +236,15 @@ Exit criteria:
 
 Scope:
 
-- Onboarding path
-- modules และ checklist
-- quiz/task placeholder หรือ integration ในอนาคต
+- Onboarding track library
+- Track Management สำหรับสร้าง/แก้ track, topic order, source ref และ badge threshold
+- Track filter ตาม category, level และ solution และ track list ต้อง scroll ได้เพื่อรองรับ track จำนวนมาก
+- Settings pages สำหรับ Track Categories และ Solutions แบบ table CRUD พร้อม row action `...`, edit/delete และ delete confirmation
+- topic type: knowledge, external view, audio response, recording review, Senario
+- Track detail `track/:id`
+- Track editor `track-management/:id`
+- Badge catalog และ user badge unlock
+- Senario completion sync เข้ากับ track topic
 - progress per sales
 - manager sign-off
 - coaching task
@@ -243,16 +252,22 @@ Scope:
 
 Deliverables:
 
-- Onboarding UI
-- Progress API
+- Onboarding UI แบบ tabs: Track, Track Management, Badge
+- Settings UI: `/app/settings/track-categories` และ `/app/settings/solutions`
+- Progress API สำหรับ track/topic/badge
+- Senario completion sync API
 - Manager dashboard
-- readiness state machine
+- readiness และ badge state machine
 
 Exit criteria:
 
-- sales เห็น task และ progress ของตัวเอง
+- sales เห็น track, topic และ badge progress ของตัวเอง
+- sales/manager กรอง track ด้วย category, level และ solution ได้โดยไม่ทำให้ layout ล้นเมื่อ track จำนวนมาก
+- sales เข้า track detail เพื่อทำ topic และเห็น linked Senario requirement
 - manager เห็น progress รายทีม
-- quality review/training result อัปเดต onboarding progress ได้
+- admin จัดการ track category และ solution catalog ได้จาก Settings พร้อม confirm ก่อน delete
+- quality review/training/Senario result อัปเดต onboarding topic progress ได้
+- badge unlock เมื่อ complete topic ถึง threshold ที่กำหนด
 
 ## Phase 7: Pilot, Calibration และ Rollout
 

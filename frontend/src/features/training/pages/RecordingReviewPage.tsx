@@ -450,6 +450,7 @@ function RecordingBatchDetail({
 }) {
   const [renameOpen, setRenameOpen] = useState(false);
   const [recordModalOpen, setRecordModalOpen] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [selectedAttempt, setSelectedAttempt] = useState<Attempt | null>(null);
   const rubric = trainingRubrics.find((item) => item.id === batch.rubricId);
   const scoredAttempts = batch.attempts.filter((attempt) => attempt.score !== null);
@@ -489,7 +490,7 @@ function RecordingBatchDetail({
               <FiMic className="h-4 w-4" />
               Record attempt
             </Button>
-            <Button variant="secondary" onClick={() => onAddAttempt('audio_upload')}>
+            <Button variant="secondary" onClick={() => setUploadModalOpen(true)}>
               <FiUploadCloud className="h-4 w-4" />
               Upload audio
             </Button>
@@ -642,6 +643,17 @@ function RecordingBatchDetail({
           }}
         />
       )}
+      {uploadModalOpen && (
+        <UploadAudioModal
+          batch={batch}
+          rubric={rubric}
+          onClose={() => setUploadModalOpen(false)}
+          onUpload={() => {
+            onAddAttempt('audio_upload', 'queued');
+            setUploadModalOpen(false);
+          }}
+        />
+      )}
       {selectedAttempt && <AttemptReviewModal attempt={selectedAttempt} onClose={() => setSelectedAttempt(null)} />}
     </div>
   );
@@ -697,6 +709,113 @@ function RenameBatchModal({
             <Button disabled={!trimmedName} onClick={() => onSave(trimmedName)}>
               <FiEdit2 className="h-4 w-4" />
               Save name
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Portal>
+  );
+}
+
+function UploadAudioModal({
+  batch,
+  rubric,
+  onClose,
+  onUpload,
+}: {
+  batch: RecordingBatch;
+  rubric?: TrainingRubric;
+  onClose: () => void;
+  onUpload: () => void;
+}) {
+  const nextAttemptNumber = batch.attempts.length + 1;
+  const mockFiles = [
+    {
+      name: `uploaded-practice-${nextAttemptNumber}.m4a`,
+      meta: 'm4a · 6.4 MB · ready',
+    },
+    {
+      name: `follow-up-objection-${nextAttemptNumber}.wav`,
+      meta: 'wav · optional file · not selected',
+    },
+  ];
+
+  return (
+    <Portal>
+      <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/28 p-4 backdrop-blur-sm" role="presentation" onMouseDown={onClose}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="upload-audio-title"
+          className="grid w-full max-w-2xl overflow-hidden rounded-lg border border-border bg-card shadow-panel"
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Recording upload</p>
+              <h2 id="upload-audio-title" className="mt-1 text-xl font-semibold text-foreground">
+                Upload audio to batch
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">เพิ่มไฟล์เสียงเข้า batch นี้ แล้วรอประเมินด้วย training rubric ที่เลือก</p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"
+              aria-label="Close upload modal"
+            >
+              <FiX className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="grid gap-4 p-5">
+            <div className="rounded-lg border border-dashed border-border bg-muted/50 p-6 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-primary">
+                <FiUploadCloud className="h-6 w-6" />
+              </div>
+              <p className="mt-3 font-semibold text-foreground">Drop audio files here or choose source</p>
+              <p className="mt-1 text-sm text-muted-foreground">รองรับ mp3, wav, m4a, webm และจะเพิ่มเป็น attempt ใน batch นี้</p>
+              <Button className="mt-4 h-9 px-4" type="button">
+                <FiUploadCloud className="h-4 w-4" />
+                Choose files
+              </Button>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <SummaryBox label="Destination batch" value={batch.name} />
+              <SummaryBox label="Training rubric" value={rubric?.name ?? '-'} />
+              <SummaryBox label="Next attempt" value={`Attempt ${nextAttemptNumber}`} />
+            </div>
+
+            <div className="rounded-lg border border-border bg-background p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="font-semibold text-foreground">Mock upload queue</p>
+                  <p className="mt-1 text-sm text-muted-foreground">ตัวอย่างไฟล์ที่จะถูก map เข้า attempt ก่อนส่ง ASR/score queue</p>
+                </div>
+                <Badge>1 selected</Badge>
+              </div>
+              <div className="mt-4 grid gap-2">
+                {mockFiles.map((file, index) => (
+                  <div key={file.name} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground">{file.name}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{file.meta}</p>
+                    </div>
+                    {index === 0 ? <Badge tone="success">queued</Badge> : <Badge>optional</Badge>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap justify-end gap-2 border-t border-border p-5">
+            <Button variant="secondary" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button onClick={onUpload}>
+              <FiPlus className="h-4 w-4" />
+              Add to batch
             </Button>
           </div>
         </div>
@@ -1265,16 +1384,26 @@ function NewBatchModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
               </Select>
             </Field>
             <div className="grid gap-2 sm:grid-cols-2">
-              <SegmentButton active={mode === 'browser_recording'} onClick={() => setMode('browser_recording')} icon={<FiMic className="h-4 w-4" />}>
+              <SegmentButton
+                active={mode === 'browser_recording'}
+                onClick={() => setMode('browser_recording')}
+                icon={<FiMic className="h-4 w-4" />}
+                description="สร้าง session ก่อน แล้วค่อยเข้า batch เพื่อบันทึกเสียง"
+              >
                 Record audio
               </SegmentButton>
-              <SegmentButton active={mode === 'audio_upload'} onClick={() => setMode('audio_upload')} icon={<FiUploadCloud className="h-4 w-4" />}>
+              <SegmentButton
+                active={mode === 'audio_upload'}
+                onClick={() => setMode('audio_upload')}
+                icon={<FiUploadCloud className="h-4 w-4" />}
+                description="สร้าง batch สำหรับอัปโหลดไฟล์เสียงภายหลัง"
+              >
                 Upload audio
               </SegmentButton>
             </div>
             <div className="rounded-lg border border-dashed border-border bg-muted p-4 text-sm leading-6 text-muted-foreground">
               {mode === 'browser_recording'
-                ? 'ระบบจะสร้าง attempt จากเสียงที่อัดใน browser แล้วส่งเข้า queue ประเมิน'
+                ? 'ระบบจะสร้าง recording session/batch ก่อน ยังไม่เริ่มอัดเสียงทันที หลังสร้างแล้วให้เข้า batch เพื่อกด Record attempt และเลือกส่ง queue เมื่อพร้อม'
                 : 'ระบบจะรับไฟล์ mp3, wav, m4a, webm หลายไฟล์ แล้ว process เรียงทีละไฟล์ใน batch'}
             </div>
           </div>
@@ -1293,18 +1422,37 @@ function NewBatchModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
   );
 }
 
-function SegmentButton({ active, onClick, icon, children }: { active: boolean; onClick: () => void; icon: ReactNode; children: ReactNode }) {
+function SegmentButton({
+  active,
+  onClick,
+  icon,
+  children,
+  description,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: ReactNode;
+  children: ReactNode;
+  description?: string;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={[
-        'inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-semibold transition',
+        'grid min-h-20 min-w-0 justify-items-center gap-1 rounded-lg border px-4 py-3 text-center text-sm font-semibold transition',
         active ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground hover:bg-muted',
       ].join(' ')}
     >
-      {icon}
-      <span className="truncate">{children}</span>
+      <span className="inline-flex min-w-0 items-center justify-center gap-2">
+        {icon}
+        <span className="truncate">{children}</span>
+      </span>
+      {description ? (
+        <span className={['text-xs font-medium leading-5', active ? 'text-primary-foreground/80' : 'text-muted-foreground'].join(' ')}>
+          {description}
+        </span>
+      ) : null}
     </button>
   );
 }

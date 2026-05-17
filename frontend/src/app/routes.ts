@@ -14,7 +14,16 @@ export const routes = {
   voiceRoleplay: '/app/training/voice-roleplay',
   voiceRoleplaySession: '/app/training/voice-roleplay/:sessionId',
   onboardingMe: '/app/onboarding/me',
+  onboardingTrack: '/app/onboarding/track/:trackId',
+  onboardingTrackManagement: '/app/onboarding/track-management/:managementTrackId',
   playbooks: '/app/playbooks',
+  knowledgeCategory: '/app/knowledge/:categoryId',
+  knowledgeBook: '/app/knowledge/book/:bookId',
+  profile: '/app/profile',
+  settings: '/app/settings',
+  settingsTheme: '/app/settings/theme',
+  settingsTrackCategories: '/app/settings/track-categories',
+  settingsSolutions: '/app/settings/solutions',
   adminUsers: '/app/admin/users',
 } as const;
 
@@ -25,6 +34,10 @@ export const buildPath = {
   recordingReviewBatch: compile<{ batchId: string }>(routes.recordingReviewBatch),
   trainingRubricDetail: compile<{ rubricId: string }>(routes.trainingRubricDetail),
   voiceRoleplaySession: compile<{ sessionId: string }>(routes.voiceRoleplaySession),
+  onboardingTrack: compile<{ trackId: string }>(routes.onboardingTrack),
+  onboardingTrackManagement: compile<{ managementTrackId: string }>(routes.onboardingTrackManagement),
+  knowledgeCategory: compile<{ categoryId: string }>(routes.knowledgeCategory),
+  knowledgeBook: compile<{ bookId: string }>(routes.knowledgeBook),
 };
 
 export const routeLabels: Record<string, string> = {
@@ -39,6 +52,15 @@ export const routeLabels: Record<string, string> = {
   [routes.voiceRoleplay]: 'Senario',
   [routes.voiceRoleplaySession]: 'Senario Session',
   [routes.onboardingMe]: 'Onboard',
+  [routes.onboardingTrack]: 'Track Detail',
+  [routes.onboardingTrackManagement]: 'Track Edit',
   [routes.playbooks]: 'Knowledge',
+  [routes.knowledgeCategory]: 'Knowledge',
+  [routes.knowledgeBook]: 'Book Detail',
+  [routes.profile]: 'Profile',
+  [routes.settings]: 'Settings',
+  [routes.settingsTheme]: 'Theme',
+  [routes.settingsTrackCategories]: 'Track Categories',
+  [routes.settingsSolutions]: 'Solutions',
   [routes.adminUsers]: 'Settings',
 };

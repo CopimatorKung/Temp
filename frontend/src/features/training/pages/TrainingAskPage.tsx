@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { FiBookOpen, FiCpu, FiMessageSquare, FiPaperclip, FiPlus, FiSend, FiSettings, FiUser } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
-import { routes } from '../../../app/routes';
+import { FiBookOpen, FiCpu, FiEye, FiMessageSquare, FiPaperclip, FiPlus, FiSend, FiSettings, FiUser, FiX } from 'react-icons/fi';
+import { Link, useNavigate } from 'react-router-dom';
+import { buildPath, routes } from '../../../app/routes';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
+import { Portal } from '../../../components/ui/Portal';
 
 const sessions = [
   {
@@ -32,18 +33,29 @@ const citations = [
     title: 'Q2 Promotion Playbook',
     section: 'Promotion / SME eligibility',
     snippet: 'ใช้ได้กับร้านค้ารายย่อยที่เปิดบัญชีใหม่และมียอดขั้นต่ำตามเงื่อนไขแคมเปญ',
+    href: `${buildPath.knowledgeBook({ bookId: 'book-q2-sme' })}#q2-promotion-terms`,
   },
   {
     title: 'Compliance Guardrail',
     section: 'Promotion claim rules',
     snippet: 'ห้ามพูดว่ารับประกันยอดขาย ต้องแจ้งวันหมดอายุและข้อจำกัดสิทธิ์ให้ครบ',
+    href: `${buildPath.knowledgeBook({ bookId: 'book-q2-sme' })}#promotion-claim-guardrail`,
   },
 ];
 
 export function TrainingAskPage() {
+  const navigate = useNavigate();
   const [activeSessionId, setActiveSessionId] = useState(sessions[0].id);
   const [draft, setDraft] = useState('โปร Q2 ใช้กับร้านค้ารายย่อยได้ไหม');
+  const [pendingCitation, setPendingCitation] = useState<(typeof citations)[number] | null>(null);
   const activeSession = sessions.find((session) => session.id === activeSessionId) ?? sessions[0];
+
+  const openPendingCitation = () => {
+    if (!pendingCitation) return;
+
+    navigate(pendingCitation.href);
+    setPendingCitation(null);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -177,14 +189,23 @@ export function TrainingAskPage() {
             </CardHeader>
             <CardContent className="grid gap-3 p-0">
               {citations.map((citation) => (
-                <div key={citation.title} className="rounded-lg border border-border bg-white p-3">
+                <div key={citation.title} className="group rounded-lg border border-border bg-white p-3 transition hover:border-primary/40 hover:shadow-sm">
                   <div className="flex items-start gap-3">
                     <FiBookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold">{citation.title}</p>
                       <p className="mt-1 text-xs text-muted-foreground">{citation.section}</p>
                       <p className="mt-2 text-xs leading-5 text-muted-foreground">{citation.snippet}</p>
                     </div>
+                    <button
+                      type="button"
+                      aria-label={`Open reference for ${citation.title}`}
+                      title="Open reference"
+                      onClick={() => setPendingCitation(citation)}
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition hover:border-primary hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <FiEye className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               ))}
@@ -192,6 +213,73 @@ export function TrainingAskPage() {
           </Card>
         </aside>
       </main>
+
+      {pendingCitation && (
+        <Portal>
+          <div
+            className="fixed inset-0 z-50 grid place-items-center bg-foreground/24 p-4 backdrop-blur-sm"
+            role="presentation"
+            onMouseDown={() => setPendingCitation(null)}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="open-citation-title"
+              className="w-full max-w-md overflow-hidden rounded-lg border border-border bg-card shadow-panel"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-start justify-between gap-4 border-b border-border p-5">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    Knowledge Reference
+                  </p>
+                  <h2 id="open-citation-title" className="mt-1 text-lg font-semibold text-foreground">
+                    Open this reference?
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                    ระบบจะพาไปยังหน้า Knowledge ที่เป็น source ของ citation นี้ เพื่ออ่าน context ก่อนตอบต่อ
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Close reference confirmation"
+                  title="Close"
+                  onClick={() => setPendingCitation(null)}
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <FiX className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="grid gap-3 p-5">
+                <div className="rounded-lg border border-border bg-muted/40 p-4">
+                  <div className="flex items-start gap-3">
+                    <FiBookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-foreground">{pendingCitation.title}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{pendingCitation.section}</p>
+                      <p className="mt-2 text-sm leading-6 text-muted-foreground">{pendingCitation.snippet}</p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs leading-5 text-muted-foreground">
+                  กดยืนยันเพื่อออกจาก chat session ปัจจุบันและเปิด reference page ใน Knowledge
+                </p>
+              </div>
+
+              <div className="flex flex-wrap justify-end gap-2 border-t border-border p-4">
+                <Button type="button" variant="secondary" onClick={() => setPendingCitation(null)}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={openPendingCitation}>
+                  <FiEye className="h-4 w-4" />
+                  Open reference
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Portal>
+      )}
     </div>
   );
 }
