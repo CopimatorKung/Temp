@@ -235,6 +235,14 @@ Minimum gates for MVP:
 - build frontend
 - coverage report
 
+Frontend command standard:
+
+```bash
+cd frontend
+deno task lint
+deno task build
+```
+
 Suggested coverage gates:
 
 - domain >= 95%

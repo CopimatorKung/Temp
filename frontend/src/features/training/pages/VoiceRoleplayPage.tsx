@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   FiArrowLeft,
@@ -7,15 +7,21 @@ import {
   FiClock,
   FiEdit2,
   FiGrid,
+  FiMinusCircle,
   FiMic,
   FiPlus,
+  FiSearch,
   FiSliders,
   FiStopCircle,
   FiUsers,
+  FiX,
 } from 'react-icons/fi';
 import { buildPath, routes } from '../../../app/routes';
+import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
+import { Input } from '../../../components/ui/Field';
+import { Portal } from '../../../components/ui/Portal';
 import {
   LatestOutcomePanel,
   MeetingRoomCard,
@@ -34,7 +40,7 @@ import {
 import { RoleplayTabs } from '../voice-roleplay/components/RoleplayTabs';
 import { LiveSessionView, SummaryView } from '../voice-roleplay/components/SessionViews';
 import { initialMeetingRooms, initialPersonas, initialSessions } from '../voice-roleplay/mock-data';
-import type { MeetingRoom, MeetingRoomForm, PageMode, PersonaForm, RoleplayTab, Session } from '../voice-roleplay/types';
+import type { MeetingRoom, MeetingRoomForm, PageMode, Persona, PersonaForm, RoleplayTab, Session } from '../voice-roleplay/types';
 import { findPreviousComparableSession, getSessionPersonas } from '../voice-roleplay/utils';
 
 export function VoiceRoleplayPage() {
@@ -53,6 +59,7 @@ export function VoiceRoleplayPage() {
   const [creatingPersona, setCreatingPersona] = useState(false);
   const [creatingMeetingRoom, setCreatingMeetingRoom] = useState(false);
   const [choosingPersona, setChoosingPersona] = useState(false);
+  const [viewingMeetingRoomId, setViewingMeetingRoomId] = useState<string | null>(null);
 
   const selectedPersona = personas.find((persona) => persona.id === selectedPersonaId) ?? personas[0];
   const activePersonas = activePersonaIds
@@ -110,6 +117,39 @@ export function VoiceRoleplayPage() {
     setActiveMeetingRoomId(room.id);
     setActivePersonaIds(room.personaIds);
     setSelectedPersonaId(room.personaIds[0] ?? selectedPersonaId);
+  };
+
+  const updateMeetingRoomPersona = (roomId: string, personaId: string, action: 'add' | 'remove') => {
+    setMeetingRooms((current) =>
+      current.map((room) => {
+        if (room.id !== roomId) {
+          return room;
+        }
+
+        if (action === 'add') {
+          return room.personaIds.includes(personaId) ? room : { ...room, personaIds: [...room.personaIds, personaId] };
+        }
+
+        if (room.personaIds.length <= 1) {
+          return room;
+        }
+
+        const nextPersonaIds = room.personaIds.filter((id) => id !== personaId);
+        return { ...room, personaIds: nextPersonaIds.length > 0 ? nextPersonaIds : room.personaIds };
+      }),
+    );
+
+    setActivePersonaIds((current) => {
+      if (activeMeetingRoomId !== roomId) {
+        return current;
+      }
+
+      if (action === 'add') {
+        return current.includes(personaId) ? current : [...current, personaId];
+      }
+
+      return current.length <= 1 ? current : current.filter((id) => id !== personaId);
+    });
   };
 
   const finishSession = () => {
@@ -218,8 +258,12 @@ export function VoiceRoleplayPage() {
               personas={personas}
               sessions={sessions}
               activeMeetingRoomId={activeMeetingRoomId}
+              viewingMeetingRoomId={viewingMeetingRoomId}
               onCreateMeetingRoom={() => setCreatingMeetingRoom(true)}
               onToggleMeetingRoom={toggleMeetingRoom}
+              onOpenMeetingRoom={setViewingMeetingRoomId}
+              onAddPersona={(roomId, personaId) => updateMeetingRoomPersona(roomId, personaId, 'add')}
+              onRemovePersona={(roomId, personaId) => updateMeetingRoomPersona(roomId, personaId, 'remove')}
             />
           )}
         </main>
@@ -488,17 +532,26 @@ function MeetingRoomTab({
   personas,
   sessions,
   activeMeetingRoomId,
+  viewingMeetingRoomId,
   onCreateMeetingRoom,
   onToggleMeetingRoom,
+  onOpenMeetingRoom,
+  onAddPersona,
+  onRemovePersona,
 }: {
   meetingRooms: typeof initialMeetingRooms;
   personas: typeof initialPersonas;
   sessions: typeof initialSessions;
   activeMeetingRoomId?: string;
+  viewingMeetingRoomId: string | null;
   onCreateMeetingRoom: () => void;
   onToggleMeetingRoom: (room: MeetingRoom) => void;
+  onOpenMeetingRoom: (roomId: string | null) => void;
+  onAddPersona: (roomId: string, personaId: string) => void;
+  onRemovePersona: (roomId: string, personaId: string) => void;
 }) {
   const multiStakeholderSessions = sessions.filter((session) => Boolean(session.meetingRoomId)).length;
+  const viewingRoom = meetingRooms.find((room) => room.id === viewingMeetingRoomId) ?? null;
 
   return (
     <section className="grid min-w-0 gap-5">
@@ -532,12 +585,192 @@ function MeetingRoomTab({
                 room={room}
                 personas={personas}
                 selected={room.id === activeMeetingRoomId}
-                onToggle={() => onToggleMeetingRoom(room)}
+                onOpen={() => onOpenMeetingRoom(room.id)}
               />
             ))}
           </div>
         </CardContent>
       </Card>
+
+      {viewingRoom ? (
+        <MeetingRoomDetailPanel
+          room={viewingRoom}
+          personas={personas}
+          isActiveMeeting={viewingRoom.id === activeMeetingRoomId}
+          onClose={() => onOpenMeetingRoom(null)}
+          onAddPersona={(personaId) => onAddPersona(viewingRoom.id, personaId)}
+          onRemovePersona={(personaId) => onRemovePersona(viewingRoom.id, personaId)}
+          onToggleMeeting={() => onToggleMeetingRoom(viewingRoom)}
+        />
+      ) : null}
     </section>
+  );
+}
+
+function MeetingRoomDetailPanel({
+  room,
+  personas,
+  isActiveMeeting,
+  onClose,
+  onAddPersona,
+  onRemovePersona,
+  onToggleMeeting,
+}: {
+  room: MeetingRoom;
+  personas: Persona[];
+  isActiveMeeting: boolean;
+  onClose: () => void;
+  onAddPersona: (personaId: string) => void;
+  onRemovePersona: (personaId: string) => void;
+  onToggleMeeting: () => void;
+}) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const roomPersonas = room.personaIds
+    .map((personaId) => personas.find((persona) => persona.id === personaId))
+    .filter((persona): persona is Persona => Boolean(persona));
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const availablePersonas = personas.filter((persona) => {
+    if (room.personaIds.includes(persona.id)) {
+      return false;
+    }
+
+    if (!normalizedSearch) {
+      return true;
+    }
+
+    return [persona.name, persona.subtitle, persona.company, persona.description, ...persona.traits]
+      .join(' ')
+      .toLowerCase()
+      .includes(normalizedSearch);
+  });
+  const canRemovePersona = room.personaIds.length > 1;
+
+  return (
+    <Portal>
+      <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/24 p-4 backdrop-blur-sm" role="presentation" onMouseDown={onClose}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="meeting-room-detail-title"
+          className="grid max-h-[92vh] w-full max-w-4xl grid-rows-[auto_1fr_auto] overflow-hidden rounded-lg border border-border bg-card shadow-panel"
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          <header className="border-b border-border px-5 py-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Meeting Room</p>
+                  <Badge tone={room.status === 'published' ? 'success' : 'muted'}>{room.status}</Badge>
+                  {isActiveMeeting ? <Badge>active meeting</Badge> : null}
+                </div>
+                <h2 id="meeting-room-detail-title" className="mt-1 text-xl font-semibold text-foreground">
+                  {room.name}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">{room.scenario}</p>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{room.description}</p>
+              </div>
+              <Button type="button" variant="ghost" className="h-9 w-9 p-0" onClick={onClose} aria-label="Close meeting room">
+                <FiX className="h-4 w-4" />
+              </Button>
+            </div>
+          </header>
+
+          <div className="min-h-0 overflow-y-auto p-5">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+              <div className="grid content-start gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-semibold text-foreground">Personas in room</h3>
+                  <Badge tone="muted">{roomPersonas.length} personas</Badge>
+                </div>
+                <div className="grid gap-2">
+                  {roomPersonas.map((persona) => (
+                    <RoomPersonaRow
+                      key={persona.id}
+                      persona={persona}
+                      actionLabel="Remove"
+                      actionIcon={<FiMinusCircle className="h-4 w-4" />}
+                      disabled={!canRemovePersona}
+                      onAction={() => onRemovePersona(persona.id)}
+                    />
+                  ))}
+                </div>
+                {!canRemovePersona ? <p className="text-xs text-muted-foreground">ต้องมีอย่างน้อย 1 persona เพื่อใช้เริ่ม voice Senario</p> : null}
+              </div>
+
+              <div className="grid content-start gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-semibold text-foreground">Append persona</h3>
+                  <Badge tone="muted">{availablePersonas.length} found</Badge>
+                </div>
+                <label className="relative block">
+                  <FiSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    className="pl-9"
+                    placeholder="Search persona, company, trait"
+                    autoFocus
+                  />
+                </label>
+                <div className="grid gap-2">
+                  {availablePersonas.length > 0 ? (
+                    availablePersonas.map((persona) => (
+                      <RoomPersonaRow
+                        key={persona.id}
+                        persona={persona}
+                        actionLabel="Append"
+                        actionIcon={<FiPlus className="h-4 w-4" />}
+                        onAction={() => onAddPersona(persona.id)}
+                      />
+                    ))
+                  ) : (
+                    <div className="rounded-lg border border-border bg-background/70 p-4 text-sm text-muted-foreground">
+                      ไม่พบ persona ที่ตรงกับคำค้น หรือทุก persona ถูกเพิ่มในห้องนี้แล้ว
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <footer className="flex flex-wrap justify-end gap-2 border-t border-border px-5 py-4">
+            <Button type="button" variant="secondary" onClick={onClose}>
+              Close
+            </Button>
+            <Button type="button" variant={isActiveMeeting ? 'secondary' : 'primary'} onClick={onToggleMeeting}>
+              {isActiveMeeting ? <FiMinusCircle className="h-4 w-4" /> : <FiPlus className="h-4 w-4" />}
+              {isActiveMeeting ? 'Unset active room' : 'Use this room'}
+            </Button>
+          </footer>
+        </div>
+      </div>
+    </Portal>
+  );
+}
+
+function RoomPersonaRow({
+  persona,
+  actionLabel,
+  actionIcon,
+  disabled = false,
+  onAction,
+}: {
+  persona: Persona;
+  actionLabel: string;
+  actionIcon: ReactNode;
+  disabled?: boolean;
+  onAction: () => void;
+}) {
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-3 rounded-lg border border-border bg-background/70 px-3 py-3">
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold text-foreground">{persona.name}</p>
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">{persona.subtitle} · {persona.company}</p>
+      </div>
+      <Button type="button" variant="secondary" className="h-9 px-3" disabled={disabled} onClick={onAction}>
+        {actionIcon}
+        {actionLabel}
+      </Button>
+    </div>
   );
 }

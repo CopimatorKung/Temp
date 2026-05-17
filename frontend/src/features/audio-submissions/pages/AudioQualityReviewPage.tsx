@@ -705,7 +705,7 @@ function BatchDetail({
           )}
         </div>
 
-        <aside className="grid content-start gap-5">
+        <aside className="grid content-start gap-5 xl:sticky xl:top-16 xl:max-h-[calc(100vh-5rem)] xl:overflow-y-auto">
           <BatchOverviewPanel batch={batch} completedFiles={completedFiles} selectedFile={selectedFile} />
           {hasResult && (
             <EvidenceDrawer

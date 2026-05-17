@@ -648,9 +648,10 @@ function RecordingBatchDetail({
           batch={batch}
           rubric={rubric}
           onClose={() => setUploadModalOpen(false)}
-          onUpload={() => {
+          onUpload={(files) => {
             onAddAttempt('audio_upload', 'queued');
             setUploadModalOpen(false);
+            void files;
           }}
         />
       )}
@@ -726,19 +727,20 @@ function UploadAudioModal({
   batch: RecordingBatch;
   rubric?: TrainingRubric;
   onClose: () => void;
-  onUpload: () => void;
+  onUpload: (files: File[]) => void;
 }) {
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const nextAttemptNumber = batch.attempts.length + 1;
-  const mockFiles = [
-    {
-      name: `uploaded-practice-${nextAttemptNumber}.m4a`,
-      meta: 'm4a · 6.4 MB · ready',
-    },
-    {
-      name: `follow-up-objection-${nextAttemptNumber}.wav`,
-      meta: 'wav · optional file · not selected',
-    },
-  ];
+  const queuedFiles = selectedFiles.map((file) => ({
+    name: file.name,
+    meta: `${getFileExtension(file.name)} · ${formatFileSize(file.size)} · ready`,
+  }));
+  const hasSelectedFiles = selectedFiles.length > 0;
+
+  function addFiles(files: FileList | File[]) {
+    setSelectedFiles(Array.from(files).filter(isSupportedAudioFile));
+  }
 
   return (
     <Portal>
@@ -769,13 +771,31 @@ function UploadAudioModal({
           </div>
 
           <div className="grid gap-4 p-5">
-            <div className="rounded-lg border border-dashed border-border bg-muted/50 p-6 text-center">
+            <div
+              className="rounded-lg border border-dashed border-border bg-muted/50 p-6 text-center transition hover:border-primary/60 hover:bg-secondary/40"
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault();
+                addFiles(event.dataTransfer.files);
+              }}
+            >
+              <input
+                ref={inputRef}
+                type="file"
+                multiple
+                accept="audio/*,.mp3,.wav,.m4a,.webm"
+                className="hidden"
+                onChange={(event) => {
+                  addFiles(event.target.files ?? []);
+                  event.currentTarget.value = '';
+                }}
+              />
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-secondary text-primary">
                 <FiUploadCloud className="h-6 w-6" />
               </div>
               <p className="mt-3 font-semibold text-foreground">Drop audio files here or choose source</p>
               <p className="mt-1 text-sm text-muted-foreground">รองรับ mp3, wav, m4a, webm และจะเพิ่มเป็น attempt ใน batch นี้</p>
-              <Button className="mt-4 h-9 px-4" type="button">
+              <Button className="mt-4 h-9 px-4" type="button" onClick={() => inputRef.current?.click()}>
                 <FiUploadCloud className="h-4 w-4" />
                 Choose files
               </Button>
@@ -790,21 +810,27 @@ function UploadAudioModal({
             <div className="rounded-lg border border-border bg-background p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="font-semibold text-foreground">Mock upload queue</p>
-                  <p className="mt-1 text-sm text-muted-foreground">ตัวอย่างไฟล์ที่จะถูก map เข้า attempt ก่อนส่ง ASR/score queue</p>
+                  <p className="font-semibold text-foreground">Upload queue</p>
+                  <p className="mt-1 text-sm text-muted-foreground">ไฟล์ที่จะถูก map เข้า attempt ก่อนส่ง ASR/score queue</p>
                 </div>
-                <Badge>1 selected</Badge>
+                <Badge>{selectedFiles.length} selected</Badge>
               </div>
               <div className="mt-4 grid gap-2">
-                {mockFiles.map((file, index) => (
-                  <div key={file.name} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">{file.name}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{file.meta}</p>
+                {hasSelectedFiles ? (
+                  queuedFiles.map((file, index) => (
+                    <div key={`${file.name}-${index}`} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground">{file.name}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{file.meta}</p>
+                      </div>
+                      <Badge tone="success">queued</Badge>
                     </div>
-                    {index === 0 ? <Badge tone="success">queued</Badge> : <Badge>optional</Badge>}
+                  ))
+                ) : (
+                  <div className="rounded-lg border border-border bg-card px-3 py-4 text-sm text-muted-foreground">
+                    ยังไม่มีไฟล์ที่เลือก กด Choose files หรือวางไฟล์ลงในพื้นที่ด้านบน
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
@@ -813,7 +839,7 @@ function UploadAudioModal({
             <Button variant="secondary" onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={onUpload}>
+            <Button disabled={!hasSelectedFiles} onClick={() => onUpload(selectedFiles)}>
               <FiPlus className="h-4 w-4" />
               Add to batch
             </Button>
@@ -822,6 +848,24 @@ function UploadAudioModal({
       </div>
     </Portal>
   );
+}
+
+function isSupportedAudioFile(file: File) {
+  const extension = getFileExtension(file.name);
+  return file.type.startsWith('audio/') || ['mp3', 'wav', 'm4a', 'webm'].includes(extension);
+}
+
+function getFileExtension(fileName: string) {
+  const extension = fileName.split('.').at(-1)?.trim().toLowerCase();
+  return extension && extension !== fileName.toLowerCase() ? extension : 'audio';
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024 * 1024) {
+    return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function RecordAttemptModal({ onClose, onSave }: { onClose: () => void; onSave: (queueStatus: 'draft' | 'queued') => void }) {

@@ -12,7 +12,7 @@ if [ -f "$PID_DIR/frontend.pid" ] && kill -0 "$(cat "$PID_DIR/frontend.pid")" 2>
   echo "Frontend already running on pid $(cat "$PID_DIR/frontend.pid")"
 else
   echo "Starting frontend on http://127.0.0.1:$FRONTEND_PORT"
-  nohup bash -lc "cd '$ROOT_DIR/frontend' && VITE_USE_MOCK_API=true npm run dev -- --host 127.0.0.1 --port '$FRONTEND_PORT'" >"$LOG_DIR/frontend.log" 2>&1 &
+  nohup bash -lc "cd '$ROOT_DIR/frontend' && VITE_USE_MOCK_API=true deno task dev --host 127.0.0.1 --port '$FRONTEND_PORT'" >"$LOG_DIR/frontend.log" 2>&1 &
   echo $! > "$PID_DIR/frontend.pid"
 fi
 

@@ -10,10 +10,17 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 }
 
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
+  const { className, ...inputProps } = props;
+
   return (
     <input
-      className="h-10 w-full min-w-0 rounded-lg border border-input bg-white px-3 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
-      {...props}
+      className={[
+        'h-10 w-full min-w-0 rounded-lg border border-input bg-white px-3 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      {...inputProps}
     />
   );
 }

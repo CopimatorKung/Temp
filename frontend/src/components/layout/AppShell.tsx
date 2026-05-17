@@ -44,8 +44,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const location = useLocation();
 
   return (
-    <div className={['min-h-screen lg:grid', isCollapsed ? 'lg:grid-cols-[72px_minmax(0,1fr)]' : 'lg:grid-cols-[232px_minmax(0,1fr)]'].join(' ')}>
-      <aside className="flex min-w-0 border-b border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] lg:sticky lg:top-0 lg:h-screen lg:flex-col lg:border-b-0 lg:border-r">
+    <div className={['min-h-screen overflow-x-hidden lg:grid lg:h-screen lg:overflow-hidden', isCollapsed ? 'lg:grid-cols-[72px_minmax(0,1fr)]' : 'lg:grid-cols-[232px_minmax(0,1fr)]'].join(' ')}>
+      <aside className="sticky top-0 z-40 flex max-h-screen min-w-0 border-b border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] lg:h-screen lg:flex-col lg:border-b-0 lg:border-r">
         <div
           className={[
             'relative flex h-14 items-center border-sidebar-border px-3 lg:border-b',
@@ -112,7 +112,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
         <UserBadge isCollapsed={isCollapsed} />
       </aside>
-      <main className="min-w-0">
+      <main className="min-w-0 lg:h-screen lg:overflow-y-auto">
         <Breadcrumbs />
         {children}
       </main>

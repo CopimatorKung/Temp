@@ -6,7 +6,7 @@ SaleSync MVP ใช้ Rust + Actix Web เป็น backend หลัก, React
 
 Knowledge/Playbook retrieval เริ่มจาก Turso FTS/BM25 เพื่อคุม source governance และ latency แต่ architecture ต้องรองรับ optional local RAG provider โดยใช้ Kotaemon เป็น RAG management/service layer และ LEANN เป็น local/private vector index backend ผ่าน `PlaybookSearchPort`
 
-Frontend runtime ใช้ React Router สำหรับ routing, `path-to-regexp` สำหรับ route path builder, Zustand สำหรับ client state, `zod` สำหรับ schema validation ใน API/mock boundary, `radash` สำหรับ utility helper, `react-icons` สำหรับ icon, Tiptap สำหรับ Knowledge Markdown editor และ React Portal สำหรับ modal/drawer/overlay
+Frontend runtime ใช้ Deno 2.x เป็น task runner/package workflow, React Router สำหรับ routing, `path-to-regexp` สำหรับ route path builder, Zustand สำหรับ client state, `zod` สำหรับ schema validation ใน API/mock boundary, `radash` สำหรับ utility helper, `react-icons` สำหรับ icon, Tiptap สำหรับ Knowledge Markdown editor และ React Portal สำหรับ modal/drawer/overlay
 
 MVP input มี 3 แบบ:
 

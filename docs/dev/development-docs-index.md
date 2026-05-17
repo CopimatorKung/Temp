@@ -34,6 +34,7 @@ MVP จะยังไม่เชื่อมตู้โทรศัพท์,
 | Layer | Technology |
 |---|---|
 | Frontend | React |
+| Frontend Runtime/Package Manager | Deno |
 | Frontend Routing | React Router + path-to-regexp |
 | Styling/UI | Tailwind CSS + shadcn/ui + React Portal |
 | Client State | Zustand |
@@ -75,6 +76,7 @@ MVP จะยังไม่เชื่อมตู้โทรศัพท์,
 - Turso database environment
 - role และ permission matrix
 - UI route map และ frontend folder standard
+- Deno 2.x สำหรับ frontend local development
 - mock API contract ของ module ที่จะเริ่มทำ
 - ยืนยันการใช้ `ui_color_theme.json` เป็น visual theme หลัก
 

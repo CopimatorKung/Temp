@@ -213,8 +213,9 @@ Review rules:
 
 | Track | Command |
 |---|---|
-| Frontend typecheck | `npm run lint` ใน `frontend` |
-| Frontend build | `npm run build` ใน `frontend` |
+| Frontend install | `deno install` ใน `frontend` |
+| Frontend typecheck | `deno task lint` ใน `frontend` |
+| Frontend build | `deno task build` ใน `frontend` |
 | Backend check | `cargo check` ใน `backend` เมื่อ backend scaffold พร้อม |
 | Backend test | `cargo test` ใน `backend` เมื่อมี test |
 | Docs | ตรวจ markdown link สำคัญแบบ manual หรือเพิ่ม checker ภายหลัง |

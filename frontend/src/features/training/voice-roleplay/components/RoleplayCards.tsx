@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react';
-import { FiCheckCircle, FiEdit2, FiMinusCircle, FiPlus, FiUser, FiUsers } from 'react-icons/fi';
+import { FiArrowRight, FiCheckCircle, FiEdit2, FiPlus, FiUser, FiUsers } from 'react-icons/fi';
 import { Badge } from '../../../../components/ui/Badge';
 import { Button } from '../../../../components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/Card';
@@ -140,12 +140,12 @@ export function MeetingRoomCard({
   room,
   personas,
   selected,
-  onToggle,
+  onOpen,
 }: {
   room: MeetingRoom;
   personas: Persona[];
   selected: boolean;
-  onToggle: () => void;
+  onOpen: () => void;
 }) {
   const roomPersonas = room.personaIds
     .map((personaId) => personas.find((persona) => persona.id === personaId))
@@ -169,14 +169,14 @@ export function MeetingRoomCard({
         </div>
       </div>
       <p className="text-sm leading-6 text-muted-foreground">{room.description}</p>
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <PersonaAvatarStack personas={roomPersonas} avatarClassName="h-9 w-9 border-card text-xs" />
           <span className="text-xs font-medium text-muted-foreground">{roomPersonas.length} personas</span>
         </div>
-        <Button type="button" variant={selected ? 'secondary' : 'primary'} onClick={onToggle}>
-          {selected ? <FiMinusCircle className="h-4 w-4" /> : <FiPlus className="h-4 w-4" />}
-          {selected ? 'Remove from meeting' : 'Add to meeting'}
+        <Button type="button" variant="secondary" onClick={onOpen}>
+          <FiArrowRight className="h-4 w-4" />
+          Open room
         </Button>
       </div>
     </article>

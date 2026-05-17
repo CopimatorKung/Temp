@@ -6,10 +6,14 @@ import {
   FiChevronDown,
   FiChevronRight,
   FiClock,
-  FiRefreshCw,
   FiEdit2,
+  FiMoreVertical,
+  FiRefreshCw,
+  FiSliders,
   FiTrash2,
+  FiUploadCloud,
   FiUser,
+  FiX,
 } from 'react-icons/fi';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
@@ -22,7 +26,7 @@ import { CreateBookModal } from '../components/CreateBookModal';
 import { BookGridCard, FavoriteKnowledgePanel } from '../components/KnowledgeBooks';
 import { KnowledgeFilters, type KnowledgeSort } from '../components/KnowledgeFilters';
 import { KnowledgeHeader } from '../components/KnowledgeHeader';
-import { KnowledgeLibraryNav, KnowledgeResourcePanel, UploadResourceModal } from '../components/KnowledgeResources';
+import { KnowledgeResourcePanel, UploadResourceModal } from '../components/KnowledgeResources';
 import { MarkdownArticle, TiptapMarkdownEditor } from '../components/MarkdownEditor';
 import {
   categories,
@@ -75,6 +79,7 @@ export function PlaybooksPage() {
   const [activeCategoryId, setActiveCategoryId] = useState('sales-playbook');
   const [createBookModalOpen, setCreateBookModalOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [toolsDrawerOpen, setToolsDrawerOpen] = useState(false);
   const [libraryTab, setLibraryTab] = useState<LibraryTab>('content');
   const [libraryView, setLibraryView] = useState<LibraryView>('grid');
   const [knowledgeSort, setKnowledgeSort] = useState<KnowledgeSort>('updated');
@@ -120,55 +125,57 @@ export function PlaybooksPage() {
 
   return (
     <main className="grid min-w-0 gap-4 p-4 md:p-5 lg:p-6">
-      <KnowledgeHeader onCreateBook={() => setCreateBookModalOpen(true)} onUploadResource={() => setUploadModalOpen(true)} />
+      <KnowledgeHeader onCreateBook={() => setCreateBookModalOpen(true)} onOpenTools={() => setToolsDrawerOpen(true)} />
 
-      <KnowledgeLibraryNav activeTab={libraryTab} activeView={libraryView} onTabChange={setLibraryTab} onViewChange={setLibraryView} />
+      <section className="grid gap-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-foreground">
+              {selectedCategoryId === 'all' ? 'All Playbooks' : categories.find((category) => category.id === selectedCategoryId)?.title ?? 'Playbooks'}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">เลือก category/tag แล้วเปิด playbook ที่ต้องการอ่านหรือแก้ไขต่อ</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone="muted">{filteredBooks.length} books</Badge>
+            <Button type="button" variant="secondary" className="h-9 px-3" onClick={() => setToolsDrawerOpen(true)}>
+              <FiSliders className="h-4 w-4" />
+              Sort / filter
+            </Button>
+          </div>
+        </div>
 
-      {libraryTab === 'content' ? (
-        <>
-          <KnowledgeFilters
-            availableTags={availableTags}
-            bookCount={filteredBooks.length}
-            selectedCategoryId={selectedCategoryId}
-            selectedSort={knowledgeSort}
-            selectedTag={selectedTag}
-            onCategoryChange={openCategory}
-            onSortChange={setKnowledgeSort}
-            onTagChange={setSelectedTag}
-            getCategoryCount={(nextCategoryId) => countBooksInCategory(knowledgeBooks, nextCategoryId)}
-          />
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {filteredBooks.map((book) => (
+            <BookGridCard key={book.id} book={book} onOpen={() => navigate(buildPath.knowledgeBook({ bookId: book.id }))} />
+          ))}
+        </div>
+      </section>
 
-          <section className="grid gap-4">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div className="min-w-0">
-                <h2 className="text-lg font-semibold text-foreground">
-                  {selectedCategoryId === 'all' ? 'All Categories' : categories.find((category) => category.id === selectedCategoryId)?.title ?? 'Books'}
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">เลือก category/tag แล้วเปิด book ที่ต้องการอ่านหรือแก้ไขต่อ</p>
-              </div>
-              <Badge tone="muted">{filteredBooks.length} books</Badge>
-            </div>
-
-            <div className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {filteredBooks.map((book) => (
-                <BookGridCard key={book.id} book={book} onOpen={() => navigate(buildPath.knowledgeBook({ bookId: book.id }))} />
-              ))}
-            </div>
-          </section>
-        </>
-      ) : libraryTab === 'favorite' ? (
-        <FavoriteKnowledgePanel favorites={senarioFavorites} />
-      ) : (
-        <KnowledgeResourcePanel
+      {toolsDrawerOpen ? (
+        <KnowledgeToolsDrawer
+          activePageTitle={activePage.title}
           activeTab={libraryTab}
           activeView={libraryView}
+          availableTags={availableTags}
+          bookCount={filteredBooks.length}
           selectedMediaIds={selectedMediaIds}
+          selectedCategoryId={selectedCategoryId}
+          selectedSort={knowledgeSort}
+          selectedTag={selectedTag}
+          senarioFavorites={senarioFavorites}
+          onClose={() => setToolsDrawerOpen(false)}
+          onCategoryChange={openCategory}
+          onSortChange={setKnowledgeSort}
+          onTabChange={setLibraryTab}
+          onTagChange={setSelectedTag}
+          onViewChange={setLibraryView}
+          onUploadResource={() => setUploadModalOpen(true)}
           onToggleMedia={toggleMediaSelection}
           onSelectAllMedia={() =>
             setSelectedMediaIds((current) => (current.length === mediaAssets.length ? [] : mediaAssets.map((asset) => asset.id)))
           }
         />
-      )}
+      ) : null}
 
       {createBookModalOpen && <CreateBookModal onClose={() => setCreateBookModalOpen(false)} />}
       {uploadModalOpen && (
@@ -182,6 +189,170 @@ export function PlaybooksPage() {
   );
 }
 
+type KnowledgeToolsDrawerProps = {
+  activePageTitle: string;
+  activeTab: LibraryTab;
+  activeView: LibraryView;
+  availableTags: string[];
+  bookCount: number;
+  selectedMediaIds: string[];
+  selectedCategoryId: string;
+  selectedSort: KnowledgeSort;
+  selectedTag: string;
+  senarioFavorites: Array<(NonNullable<(typeof initialSessions)[number]['knowledgeAcquired']>[number]) & { sessionTitle: string }>;
+  onClose: () => void;
+  onCategoryChange: (categoryId: string) => void;
+  onSortChange: (sort: KnowledgeSort) => void;
+  onTabChange: (tab: LibraryTab) => void;
+  onTagChange: (tag: string) => void;
+  onViewChange: (view: LibraryView) => void;
+  onUploadResource: () => void;
+  onToggleMedia: (mediaId: string) => void;
+  onSelectAllMedia: () => void;
+};
+
+const toolStatusItems = [
+  { label: 'Turso BM25', value: 'synced', tone: 'success' as const },
+  { label: 'Kotaemon', value: 'ready', tone: 'default' as const },
+  { label: 'LEANN', value: '2 pending', tone: 'warning' as const },
+];
+
+function KnowledgeToolsDrawer({
+  activePageTitle,
+  activeTab,
+  activeView,
+  availableTags,
+  bookCount,
+  selectedMediaIds,
+  selectedCategoryId,
+  selectedSort,
+  selectedTag,
+  senarioFavorites,
+  onClose,
+  onCategoryChange,
+  onSortChange,
+  onTabChange,
+  onTagChange,
+  onViewChange,
+  onUploadResource,
+  onToggleMedia,
+  onSelectAllMedia,
+}: KnowledgeToolsDrawerProps) {
+  const secondaryTabs: Array<{ id: Exclude<LibraryTab, 'content'>; label: string }> = [
+    { id: 'favorite', label: 'Favorite' },
+    { id: 'files', label: 'Files' },
+    { id: 'media', label: 'Media' },
+  ];
+  const drawerTab = activeTab === 'content' ? 'favorite' : activeTab;
+
+  return (
+    <Portal>
+      <div className="fixed inset-0 z-50 bg-foreground/20 backdrop-blur-sm" role="presentation" onMouseDown={onClose}>
+        <aside
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="knowledge-tools-title"
+          className="ml-auto grid h-full w-full max-w-2xl grid-rows-[auto_1fr] overflow-hidden border-l border-border bg-card shadow-panel"
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          <header className="border-b border-border px-5 py-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Library tools</p>
+                <h2 id="knowledge-tools-title" className="mt-1 text-lg font-semibold text-foreground">
+                  Secondary workspace
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">จัดการไฟล์ media, sync status และรายการ favorite โดยไม่เบียดพื้นที่ Playbooks</p>
+              </div>
+              <Button type="button" variant="ghost" className="h-9 w-9 p-0" onClick={onClose} aria-label="Close library tools">
+                <FiX className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              {toolStatusItems.map((item) => (
+                <div key={item.label} className="rounded-lg border border-border bg-background/70 px-3 py-2">
+                  <p className="text-xs font-semibold text-muted-foreground">{item.label}</p>
+                  <span className="mt-2 inline-flex">
+                    <Badge tone={item.tone}>{item.value}</Badge>
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {secondaryTabs.map((tab) => (
+                <Button
+                  key={tab.id}
+                  type="button"
+                  variant={drawerTab === tab.id ? 'primary' : 'secondary'}
+                  className="h-9 px-3"
+                  onClick={() => onTabChange(tab.id)}
+                >
+                  {tab.label}
+                </Button>
+              ))}
+              <Button type="button" variant="secondary" className="ml-auto h-9 px-3" onClick={onUploadResource}>
+                <FiUploadCloud className="h-4 w-4" />
+                Upload
+              </Button>
+            </div>
+          </header>
+
+          <div className="grid min-h-0 gap-4 overflow-y-auto p-5">
+            <KnowledgeFilters
+              availableTags={availableTags}
+              bookCount={bookCount}
+              selectedCategoryId={selectedCategoryId}
+              selectedSort={selectedSort}
+              selectedTag={selectedTag}
+              onCategoryChange={onCategoryChange}
+              onSortChange={onSortChange}
+              onTagChange={onTagChange}
+              getCategoryCount={(nextCategoryId) => countBooksInCategory(knowledgeBooks, nextCategoryId)}
+            />
+
+            {drawerTab === 'favorite' ? (
+              <FavoriteKnowledgePanel favorites={senarioFavorites} />
+            ) : (
+              <div className="grid gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-semibold text-foreground">Resource tools for {activePageTitle}</p>
+                  <div className="flex rounded-lg border border-border bg-background p-1">
+                    {[
+                      { id: 'table' as const, label: 'Table' },
+                      { id: 'grid' as const, label: 'Grid' },
+                    ].map((view) => (
+                      <button
+                        key={view.id}
+                        type="button"
+                        onClick={() => onViewChange(view.id)}
+                        className={[
+                          'h-8 rounded-md px-3 text-xs font-semibold transition',
+                          activeView === view.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+                        ].join(' ')}
+                      >
+                        {view.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <KnowledgeResourcePanel
+                  activeTab={drawerTab}
+                  activeView={activeView}
+                  selectedMediaIds={selectedMediaIds}
+                  onToggleMedia={onToggleMedia}
+                  onSelectAllMedia={onSelectAllMedia}
+                />
+              </div>
+            )}
+          </div>
+        </aside>
+      </div>
+    </Portal>
+  );
+}
+
 function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => void }) {
   const safeBook = book ?? knowledgeBooks[0];
   const pages = flattenBookPages(safeBook);
@@ -192,12 +363,38 @@ function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => 
   const [collapsedTopics, setCollapsedTopics] = useState<Set<string>>(new Set());
   const [favoriteChapters, setFavoriteChapters] = useState<Set<string>>(new Set());
   const [favoriteTopics, setFavoriteTopics] = useState<Set<string>>(new Set());
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const activePage = pages.find((page) => page.id === activePageId) ?? pages[0];
   const [draftMarkdown, setDraftMarkdown] = useState(activePage?.markdown ?? '');
 
   useEffect(() => {
     setDraftMarkdown(activePage?.markdown ?? '');
   }, [activePage?.id, activePage?.markdown]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((first, second) => Math.abs(first.boundingClientRect.top - 140) - Math.abs(second.boundingClientRect.top - 140))[0];
+        const pageId = visibleEntry?.target.id.replace('knowledge-page-', '');
+
+        if (pageId) {
+          setActivePageId(pageId);
+        }
+      },
+      { root: null, rootMargin: '-18% 0px -58% 0px', threshold: [0.1, 0.35, 0.6] },
+    );
+
+    pages.forEach((page) => {
+      const element = document.getElementById(`knowledge-page-${page.id}`);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [book?.id]);
 
   const toggleChapter = (chapterId: string) => {
     setCollapsedChapters((current) => {
@@ -227,6 +424,14 @@ function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => 
     setActivePageId(pageId);
     window.requestAnimationFrame(() => {
       document.getElementById(`knowledge-page-${pageId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const editPage = (pageId: string) => {
+    setActivePageId(pageId);
+    setEditing(true);
+    window.requestAnimationFrame(() => {
+      document.getElementById('knowledge-page-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   };
 
@@ -273,67 +478,88 @@ function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => 
   return (
     <main className="grid min-w-0 gap-4 p-3 md:p-4 lg:p-5">
       <header className="rounded-lg border border-border bg-card px-4 py-3 shadow-panel">
-        <Button
-          type="button"
-          variant="ghost"
-          className="-ml-2 mb-2 h-8 w-8 p-0"
-          onClick={onBack}
-          aria-label="Back to Knowledge"
-          title="Back to Knowledge"
-        >
-          <FiArrowLeft className="h-4 w-4" />
-        </Button>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Book Detail</p>
-            <h1 className="mt-1 text-xl font-semibold text-foreground md:text-2xl">{book.title}</h1>
-            <p className="mt-1 text-xs text-muted-foreground md:text-sm">
-              {countBookChapters(book)} chapters · {countBookTopics(book)} topics · {countBookPages(book)} pages · Owner: {book.owner}
-            </p>
-            <div className="mt-3 grid max-w-4xl gap-2 text-xs sm:grid-cols-3">
-              <div className="flex min-w-0 items-start gap-2 rounded-md border border-border bg-background/60 px-3 py-2">
-                <FiUser className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <div className="min-w-0">
-                  <p className="font-semibold text-muted-foreground">Author</p>
-                  <p className="truncate font-semibold text-foreground">{book.author}</p>
-                </div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-8 w-8 shrink-0 p-0"
+              onClick={onBack}
+              aria-label="Back to Knowledge"
+              title="Back to Knowledge"
+            >
+              <FiArrowLeft className="h-4 w-4" />
+            </Button>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Book Detail</p>
+                <Badge tone={book.ragStatus === 'synced' ? 'success' : book.ragStatus === 'pending' ? 'warning' : 'danger'}>{book.ragStatus}</Badge>
+                <Badge tone="muted">{favoriteChapters.size + favoriteTopics.size} favorites</Badge>
               </div>
-              <div className="flex min-w-0 items-start gap-2 rounded-md border border-border bg-background/60 px-3 py-2">
-                <FiClock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <div className="min-w-0">
-                  <p className="font-semibold text-muted-foreground">Last visit</p>
-                  <p className="truncate font-semibold text-foreground">
-                    {book.lastVisitedBy} · {book.lastVisitedSince}
-                  </p>
-                </div>
-              </div>
-              <div className="flex min-w-0 items-start gap-2 rounded-md border border-border bg-background/60 px-3 py-2">
-                <FiRefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                <div className="min-w-0">
-                  <p className="font-semibold text-muted-foreground">Last update</p>
-                  <p className="truncate font-semibold text-foreground">
-                    {book.lastUpdatedBy} · {book.lastUpdatedSince}
-                  </p>
-                </div>
+              <h1 className="mt-1 truncate text-lg font-semibold text-foreground md:text-xl">{book.title}</h1>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {countBookChapters(book)} chapters · {countBookTopics(book)} topics · {countBookPages(book)} pages · Owner: {book.owner}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1.5">
+                  <FiUser className="h-3.5 w-3.5 text-primary" />
+                  Author: <strong className="font-semibold text-foreground">{book.author}</strong>
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <FiClock className="h-3.5 w-3.5 text-primary" />
+                  Last visit: <strong className="font-semibold text-foreground">{book.lastVisitedBy} · {book.lastVisitedSince}</strong>
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <FiRefreshCw className="h-3.5 w-3.5 text-primary" />
+                  Updated: <strong className="font-semibold text-foreground">{book.lastUpdatedBy} · {book.lastUpdatedSince}</strong>
+                </span>
               </div>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Badge tone={book.ragStatus === 'synced' ? 'success' : book.ragStatus === 'pending' ? 'warning' : 'danger'}>{book.ragStatus}</Badge>
-            <Badge tone="muted">{favoriteChapters.size + favoriteTopics.size} favorites</Badge>
-            <Button type="button" variant={editing ? 'primary' : 'secondary'} className="h-9 px-3" onClick={() => setEditing((current) => !current)}>
-              <FiEdit2 className="h-4 w-4" />
-              {editing ? 'Done editing' : 'Edit'}
+
+          <div className="relative shrink-0">
+            <Button
+              type="button"
+              variant="secondary"
+              className="h-9 w-9 p-0"
+              onClick={() => setActionMenuOpen((current) => !current)}
+              aria-label="Book actions"
+              aria-expanded={actionMenuOpen}
+            >
+              <FiMoreVertical className="h-4 w-4" />
             </Button>
-            <Button type="button" variant="destructive" className="h-9 px-3" onClick={() => setDeleteModalOpen(true)} aria-label="Delete book">
-              <FiTrash2 className="h-4 w-4" />
-            </Button>
+            {actionMenuOpen ? (
+              <div className="absolute right-0 top-11 z-20 grid w-44 overflow-hidden rounded-lg border border-border bg-card p-1 shadow-panel">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditing((current) => !current);
+                    setActionMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-semibold text-foreground transition hover:bg-secondary"
+                >
+                  <FiEdit2 className="h-4 w-4" />
+                  {editing ? 'Done editing' : 'Edit'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteModalOpen(true);
+                    setActionMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-semibold text-destructive transition hover:bg-destructive/10"
+                >
+                  <FiTrash2 className="h-4 w-4" />
+                  Remove
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </header>
 
       <section className="grid min-w-0 gap-4 xl:grid-cols-[300px_minmax(0,1fr)] xl:items-start">
-        <aside className="min-w-0 rounded-lg border border-border bg-card p-3 shadow-panel xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto">
+        <aside className="min-w-0 rounded-lg border border-border bg-card p-3 shadow-panel xl:sticky xl:top-16 xl:max-h-[calc(100vh-5rem)] xl:overflow-y-auto">
           <div className="mb-3 flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Contents</p>
@@ -442,7 +668,7 @@ function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => 
 
         <section className="grid min-w-0 gap-4">
           {editing && activePage ? (
-            <Card className="min-w-0 overflow-hidden">
+            <Card id="knowledge-page-editor" className="scroll-mt-20 min-w-0 overflow-hidden">
               <CardHeader className="px-4 py-3">
                 <CardTitle>Edit selected page</CardTitle>
                 <p className="mt-1 text-xs text-muted-foreground">{activePage.chapter.title} / {activePage.topic.title}</p>
@@ -484,15 +710,26 @@ function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => 
                         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">Chapter {chapterIndex + 1}</p>
                         <h2 className="mt-1 text-2xl font-semibold text-foreground">{chapter.title}</h2>
                       </div>
-                      <Button
-                        type="button"
-                        variant={favoriteChapters.has(chapter.id) ? 'primary' : 'secondary'}
-                        className="h-8 px-3 text-xs"
-                        onClick={() => toggleFavoriteChapter(chapter.id)}
-                      >
-                        <FiBookmark className={favoriteChapters.has(chapter.id) ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
-                        {favoriteChapters.has(chapter.id) ? 'Favorited' : 'Favorite'}
-                      </Button>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          className="h-8 px-3 text-xs"
+                          onClick={() => editPage(chapter.topics[0]?.pages[0]?.id ?? activePageId)}
+                        >
+                          <FiEdit2 className="h-4 w-4" />
+                          Edit chapter
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={favoriteChapters.has(chapter.id) ? 'primary' : 'secondary'}
+                          className="h-8 px-3 text-xs"
+                          onClick={() => toggleFavoriteChapter(chapter.id)}
+                        >
+                          <FiBookmark className={favoriteChapters.has(chapter.id) ? 'h-4 w-4 fill-current' : 'h-4 w-4'} />
+                          {favoriteChapters.has(chapter.id) ? 'Favorited' : 'Favorite'}
+                        </Button>
+                      </div>
                     </div>
 
                     {chapter.topics.map((topic, topicIndex) => (
@@ -532,6 +769,15 @@ function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => 
                                 </p>
                               </div>
                               <div className="flex flex-wrap gap-2">
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  className="h-8 px-3 text-xs"
+                                  onClick={() => editPage(page.id)}
+                                >
+                                  <FiEdit2 className="h-4 w-4" />
+                                  Edit
+                                </Button>
                                 <Badge tone={page.status === 'published' ? 'success' : page.status === 'review' ? 'warning' : 'muted'}>{page.status}</Badge>
                                 {page.tags.slice(0, 3).map((tag) => (
                                   <Badge key={tag} tone="muted">
