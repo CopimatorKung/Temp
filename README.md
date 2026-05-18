@@ -159,7 +159,52 @@ Backend ยังเป็นแผนและ scaffold documentation เป็
 
 ## Run Locally
 
-ใช้ script ที่ root project:
+### Prerequisites
+
+ต้องมี Deno 2.x ก่อนรัน frontend mock
+
+ติดตั้ง Deno:
+
+```bash
+curl -fsSL https://deno.land/install.sh | sh
+```
+
+หรือบน macOS ที่ใช้ Homebrew:
+
+```bash
+brew install deno
+```
+
+เช็คว่า install สำเร็จ:
+
+```bash
+deno --version
+```
+
+อ้างอิงวิธีติดตั้งล่าสุดจาก [Deno Installation Docs](https://docs.deno.com/runtime/getting_started/installation/)
+
+### Install Dependencies
+
+Frontend ใช้ `deno.json`, `deno.lock` และ `package.json` ใน `frontend/` โดยเปิด `nodeModulesDir: "auto"` เพื่อให้ Deno จัดการ npm dependencies ให้
+
+หลัง clone repo ให้ install dependency:
+
+```bash
+cd frontend
+deno install
+```
+
+คำสั่งที่ใช้บ่อยใน frontend:
+
+```bash
+deno task dev
+deno task lint
+deno task build
+```
+
+### Start Mock App
+
+กลับมาที่ root project แล้วใช้ script:
 
 ```bash
 ./scripts/start-local.sh
@@ -210,4 +255,3 @@ frontend/    React mock frontend
 docs/dev/    Development docs, PRD, architecture, API, testing, UAT
 scripts/     Local start/stop scripts
 ```
-
