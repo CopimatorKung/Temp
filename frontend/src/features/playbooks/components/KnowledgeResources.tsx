@@ -454,7 +454,7 @@ export function UploadResourceModal({
             <div className="grid gap-3 rounded-lg border border-border bg-secondary/25 p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Mock import queue</p>
+                  <p className="text-sm font-semibold text-foreground">คิวนำเข้าเอกสาร</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {creatingNewBook
                       ? 'ไฟล์จะถูกจัดเป็น book ใหม่ พร้อม chapter/topic/page และรอ review ก่อน sync เข้า index'

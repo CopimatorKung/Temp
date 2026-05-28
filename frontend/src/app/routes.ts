@@ -30,6 +30,7 @@ export const routes = {
   settingsTrackCategories: '/app/settings/track-categories',
   settingsSolutions: '/app/settings/solutions',
   adminUsers: '/app/admin/users',
+  colorPalette: '/app/design/color-palette',
 } as const;
 
 export const buildPath = {

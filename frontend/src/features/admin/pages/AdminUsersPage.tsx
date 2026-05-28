@@ -5,7 +5,6 @@ import {
   FiChevronRight,
   FiDatabase,
   FiEdit2,
-  FiLayers,
   FiLock,
   FiMoreVertical,
   FiMoon,
@@ -35,7 +34,7 @@ type AdminUsersPageProps = {
 const settingsItems = [
   {
     title: 'Theme',
-    description: 'เลือก light หรือ dark mode และเตรียม token สำหรับ UI ทั้งระบบ',
+    description: 'เลือกรูปแบบสีสว่างหรือสีเข้มสำหรับหน้าจอทั้งระบบ',
     icon: FiSun,
     href: routes.settingsTheme,
     status: 'active',
@@ -45,42 +44,42 @@ const settingsItems = [
     description: 'จัดกลุ่ม onboarding track เช่น foundation, solution specialist และ enterprise',
     icon: FiTag,
     href: routes.settingsTrackCategories,
-    status: 'mock',
+    status: 'preview',
   },
   {
     title: 'Solutions',
-    description: 'ตั้งค่า solution default สำหรับ filter track และ assign learning path',
+    description: 'ตั้งค่าสินค้าหลักสำหรับคัดกรองหลักสูตรและมอบหมายเส้นทางการเรียนรู้',
     icon: FiPackage,
     href: routes.settingsSolutions,
-    status: 'mock',
+    status: 'preview',
   },
   {
     title: 'Users & Roles',
-    description: 'จัดการ sales, manager, admin และ team scope',
+    description: 'จัดการผู้ใช้งาน บทบาท และขอบเขตทีมในระบบ',
     icon: FiUsers,
     href: routes.settingsUsersRoles,
-    status: 'mock',
+    status: 'preview',
   },
   {
     title: 'Security',
-    description: 'กำหนด session, access policy และ audit behavior',
+    description: 'กำหนดนโยบายความปลอดภัยและการเข้าถึงระบบ',
     icon: FiLock,
     href: routes.settingsSecurity,
-    status: 'mock',
+    status: 'preview',
   },
   {
     title: 'Knowledge Sync',
-    description: 'ตั้งค่า Turso BM25, Kotaemon และ LEANN local index',
+    description: 'ตั้งค่าระบบค้นหาและ AI สำหรับฐานความรู้',
     icon: FiDatabase,
     href: routes.settingsKnowledgeSync,
-    status: 'mock',
+    status: 'preview',
   },
   {
     title: 'Notifications',
-    description: 'ควบคุม alert สำหรับ review, onboarding และ import jobs',
+    description: 'ตั้งค่าการแจ้งเตือนสำหรับการตรวจสอบ การฝึกอบรม และการอัพโหลดไฟล์',
     icon: FiBell,
     href: routes.settingsNotifications,
-    status: 'mock',
+    status: 'preview',
   },
 ];
 
@@ -212,14 +211,14 @@ const themeModes = [
   {
     id: 'light',
     title: 'Light',
-    description: 'Juniper pastel light mode สำหรับ dashboard และงานประจำวัน',
+    description: 'โหมดสว่างสำหรับใช้งานทั่วไปในที่ที่มีแสงสว่างเพียงพอ',
     icon: FiSun,
     sample: ['bg-card', 'bg-secondary', 'bg-primary'],
   },
   {
     id: 'dark',
     title: 'Dark',
-    description: 'Dark-ready token set สำหรับพื้นที่แสงน้อยและ review นาน ๆ',
+    description: 'โหมดมืดสำหรับใช้งานในที่แสงน้อยหรือทำงานนาน',
     icon: FiMoon,
     sample: ['bg-foreground', 'bg-primary', 'bg-success'],
   },
@@ -267,7 +266,7 @@ function UsersRolesSettingsPage() {
     <SettingsManagementPage
       eyebrow="Settings · Users & Roles"
       title="Users & Roles"
-      description="จัดการ user, role, team scope และ active/inactive status สำหรับ sales, manager และ admin"
+      description="จัดการผู้ใช้งาน บทบาท ทีม และสถานะใช้งานในระบบ"
       actionLabel="New user"
       icon={FiUsers}
       onCreate={() => setEditingUser(managedUsers[0])}
@@ -281,7 +280,7 @@ function UsersRolesSettingsPage() {
       <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle>User management</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">ตาราง user detail สำหรับ role, team scope และ status พร้อม row action edit/delete</p>
+          <p className="mt-1 text-sm text-muted-foreground">รายชื่อผู้ใช้งานพร้อมบทบาท ทีม สถานะ และปุ่มแก้ไข/ลบ</p>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto rounded-lg border border-border">
@@ -335,7 +334,7 @@ function UsersRolesSettingsPage() {
       {deletingUser && (
         <ConfirmDeleteModal
           title="Delete user?"
-          description={`ลบ user "${deletingUser.name}" ออกจาก mock settings หรือไม่ ระบบจริงควร deactivate ก่อน delete ถ้ามี audit หรือ training history`}
+          description={`ลบ user "${deletingUser.name}" ออกจาก workspace หรือไม่ หากผู้ใช้มีประวัติการฝึกอบรม แนะนำให้ปิดใช้งานแทนการลบถาวร`}
           onClose={() => setDeletingUser(null)}
         />
       )}
@@ -348,7 +347,7 @@ function SecuritySettingsPage() {
     <SettingsManagementPage
       eyebrow="Settings · Security"
       title="Security"
-      description="กำหนด session policy, access policy และ audit behavior ที่ backend จะใช้กับ REST/WSS ทุก module"
+      description="กำหนดนโยบายความปลอดภัย การเข้าถึง และการบันทึกกิจกรรมในระบบ"
       actionLabel="Save policy"
       icon={FiLock}
       onCreate={() => undefined}
@@ -363,7 +362,7 @@ function SecuritySettingsPage() {
         <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Access policy</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">role-based permission matrix สำหรับ sales, manager และ admin</p>
+            <p className="mt-1 text-sm text-muted-foreground">ตารางสิทธิ์การใช้งานตามบทบาทของ Sales, Manager และ Admin</p>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto rounded-lg border border-border">
@@ -406,7 +405,7 @@ function SecuritySettingsPage() {
         <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Session controls</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">mock form สำหรับ policy ที่ backend ต้อง enforce</p>
+            <p className="mt-1 text-sm text-muted-foreground">กำหนด security policy สำหรับองค์กร</p>
           </CardHeader>
           <CardContent className="grid gap-4">
             <Field label="Session TTL">
@@ -445,7 +444,7 @@ function KnowledgeSyncSettingsPage() {
     <SettingsManagementPage
       eyebrow="Settings · Knowledge Sync"
       title="Knowledge Sync"
-      description="ตั้งค่า provider สำหรับ source-first BM25, Kotaemon RAG service และ LEANN local/private index"
+      description="ตั้งค่าระบบค้นหาและ AI ที่ใช้ตอบคำถามจากฐานความรู้"
       actionLabel="Run sync"
       icon={FiDatabase}
       onCreate={() => undefined}
@@ -460,7 +459,7 @@ function KnowledgeSyncSettingsPage() {
         <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Provider status</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">backend ต้อง sync Knowledge page ที่ publish เข้า BM25 และ optional Kotaemon/LEANN</p>
+            <p className="mt-1 text-sm text-muted-foreground">ระบบจะซิงค์หน้าความรู้ที่เผยแพร่แล้วเข้าสู่เครื่องมือค้นหาโดยอัตโนมัติ</p>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto rounded-lg border border-border">
@@ -498,7 +497,7 @@ function KnowledgeSyncSettingsPage() {
         <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Sync policy</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">เลือก provider strategy สำหรับ Ask และ Senario preload</p>
+            <p className="mt-1 text-sm text-muted-foreground">เลือกวิธีการค้นหาข้อมูลสำหรับฟีเจอร์ Ask และการฝึกซ้อม</p>
           </CardHeader>
           <CardContent className="grid gap-4">
             <Field label="Default retrieval">
@@ -528,7 +527,7 @@ function KnowledgeSyncSettingsPage() {
       <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle>Recent sync jobs</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">queue/result ที่ map กลับไป `playbook_rag_indexes` สำหรับ citation</p>
+          <p className="mt-1 text-sm text-muted-foreground">รายการงานซิงค์และผลลัพธ์ที่ใช้อ้างอิงในคำตอบของ AI</p>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto rounded-lg border border-border">
@@ -586,7 +585,7 @@ function NotificationsSettingsPage() {
         <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Notification rules</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">กำหนด event, audience, channel และ severity ที่ backend จะใช้สร้าง notification</p>
+            <p className="mt-1 text-sm text-muted-foreground">กำหนดเหตุการณ์ กลุ่มผู้รับ ช่องทาง และระดับความสำคัญของการแจ้งเตือน</p>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto rounded-lg border border-border">
@@ -623,7 +622,7 @@ function NotificationsSettingsPage() {
         <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Delivery policy</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">mock config สำหรับ digest, quiet hours และ retry</p>
+            <p className="mt-1 text-sm text-muted-foreground">ตั้งค่าการส่งแจ้งเตือนแบบสรุป ช่วงเวลาเงียบ และการส่งซ้ำ</p>
           </CardHeader>
           <CardContent className="grid gap-4">
             <Field label="Default digest">
@@ -653,7 +652,7 @@ function NotificationsSettingsPage() {
       <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle>Channels</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">ช่องทางส่ง notification ที่ backend adapter ต้องรองรับ</p>
+          <p className="mt-1 text-sm text-muted-foreground">ช่องทางการส่งการแจ้งเตือนที่ระบบรองรับ</p>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-3">
           {notificationChannels.map((channel) => (
@@ -697,7 +696,7 @@ function SettingsIndexPage() {
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-secondary text-primary">
                 <item.icon className="h-5 w-5" />
               </span>
-              <Badge tone={item.status === 'active' ? 'success' : item.status === 'mock' ? 'default' : 'muted'}>{item.status}</Badge>
+              <Badge tone={item.status === 'active' ? 'success' : item.status === 'preview' ? 'default' : 'muted'}>{item.status}</Badge>
             </div>
             <div className="min-w-0">
               <p className="text-base font-semibold text-foreground">{item.title}</p>
@@ -785,7 +784,7 @@ function TrackCategoriesSettingsPage() {
       {deletingCategory && (
         <ConfirmDeleteModal
           title="Delete track category?"
-          description={`ลบ category "${deletingCategory.name}" ออกจาก mock settings หรือไม่ ระบบจริงควร block ถ้ายังมี track assign อยู่`}
+          description={`ลบ category "${deletingCategory.name}" ออกจาก workspace หรือไม่ หากยังมีหลักสูตรที่ผูกกับหมวดหมู่นี้อยู่ ระบบจะไม่อนุญาตให้ลบ`}
           onClose={() => setDeletingCategory(null)}
         />
       )}
@@ -862,7 +861,7 @@ function SolutionsSettingsPage() {
       {deletingSolution && (
         <ConfirmDeleteModal
           title="Delete solution?"
-          description={`ลบ solution "${deletingSolution.name}" ออกจาก mock settings หรือไม่ ถ้ามี track ใช้อยู่ระบบจริงควรให้ reassign ก่อน`}
+          description={`ลบ solution "${deletingSolution.name}" ออกจาก workspace หรือไม่ หากยังมีหลักสูตรที่ใช้สินค้านี้อยู่ กรุณาย้ายหลักสูตรไปยังสินค้าอื่นก่อน`}
           onClose={() => setDeletingSolution(null)}
         />
       )}
@@ -995,9 +994,9 @@ function UserEditModal({ user, onClose }: { user: (typeof managedUsers)[number];
               <Input defaultValue={user.badge} />
             </Field>
             <div className="rounded-lg border border-border bg-background/70 p-3 md:col-span-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Backend mapping</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">ข้อมูลอ้างอิง</p>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                mock นี้ map กับ `users`, `sales_profiles`, `teams`, permission projection และ `GET /auth/me` สำหรับ sidebar/current user
+                ข้อมูลผู้ใช้นี้เชื่อมต่อกับโปรไฟล์ Sales ทีม สิทธิ์การใช้งาน และข้อมูลหน้าจอหลัก
               </p>
             </div>
           </div>
@@ -1193,7 +1192,7 @@ function ThemeSettingsPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Settings · Theme</p>
           <h1 className="mt-2 text-2xl font-semibold text-foreground md:text-3xl">Theme</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            เลือก appearance ของ Pitchsmith โดยอิง Juniper pastel token set เดียวกับทั้งโปรเจกต์
+            เลือกรูปแบบสีสำหรับ Pitchsmith ที่ใช้ทั่วทั้งแอปพลิเคชัน
           </p>
         </div>
         <Link to={routes.settings}>
@@ -1251,7 +1250,7 @@ function ThemeSettingsPage() {
       <Card className="overflow-hidden">
         <CardHeader>
           <CardTitle>Theme tokens</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">mock view สำหรับทีม dev ตอน map token เข้า Tailwind/shadcn variables</p>
+          <p className="mt-1 text-sm text-muted-foreground">ตัวอย่างสีที่ใช้ในระบบ</p>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[

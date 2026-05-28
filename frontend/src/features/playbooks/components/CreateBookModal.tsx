@@ -70,7 +70,7 @@ export function CreateBookModal({ onClose }: CreateBookModalProps) {
             </Field>
 
             <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2 text-xs leading-5 text-muted-foreground">
-              Mock flow: หลังสร้าง ระบบจะเปิดหน้า book detail เป็น draft เพื่อให้เพิ่ม chapter/topic/page และ sync เข้า BM25 หรือ local RAG เมื่อ publish
+              หลังสร้าง ระบบจะเปิดหน้า book detail เป็น draft เพื่อให้เพิ่ม chapter/topic/page และ publish เมื่อพร้อม
             </div>
           </div>
 

@@ -218,7 +218,7 @@ export function LiveSessionView({
                       </span>
                       <p className="truncate text-xs font-semibold uppercase tracking-[0.12em] text-primary">Listening</p>
                     </div>
-                    <p className="text-xs font-medium text-muted-foreground">voice input active</p>
+                    <p className="text-xs font-medium text-muted-foreground">กำลังรับเสียง</p>
                   </div>
                   <VoiceInputMeter />
                 </div>
@@ -229,12 +229,12 @@ export function LiveSessionView({
                   type="button"
                   variant={isPushToTalkListening ? 'primary' : 'secondary'}
                   className="justify-center sm:w-auto"
-                  aria-label={isPushToTalkListening ? 'Stop recording' : 'Push to talk'}
+                  aria-label={isPushToTalkListening ? 'Stop recording' : 'กดเพื่อพูด'}
                   aria-pressed={isPushToTalkListening}
                   onClick={togglePushToTalk}
                 >
                   {isPushToTalkListening ? <FiSquare className="h-4 w-4" /> : <FiMic className="h-4 w-4" />}
-                  {isPushToTalkListening ? 'Stop recording' : 'Push to talk'}
+                  {isPushToTalkListening ? 'Stop recording' : 'กดเพื่อพูด'}
                 </Button>
                 <Button type="button" className="justify-center sm:w-auto" onClick={() => trackResponseLatency('send_text')}>
                   <FiSend className="h-4 w-4" />

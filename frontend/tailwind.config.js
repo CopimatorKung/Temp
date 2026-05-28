@@ -38,7 +38,7 @@ export default {
         sm: '4px',
       },
       boxShadow: {
-        panel: '0 16px 38px rgb(36 51 72 / 0.12)',
+        panel: '0 16px 38px rgb(0 0 0 / 0.09)',
       },
     },
   },

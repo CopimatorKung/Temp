@@ -34,7 +34,6 @@ export function ProfilePage() {
                 Voice Architect
               </span>
             </Badge>
-            <Badge tone="muted">mock profile</Badge>
           </div>
         </div>
       </header>
@@ -54,7 +53,7 @@ export function ProfilePage() {
         <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Edit profile</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">ข้อมูล mock สำหรับตั้งค่า user profile ที่ใช้แสดงใน sidebar และ workflow review</p>
+            <p className="mt-1 text-sm text-muted-foreground">ข้อมูลที่แสดงใน sidebar และ workflow review ของทีม</p>
           </CardHeader>
           <CardContent className="grid gap-4 p-5 md:grid-cols-2">
             <Field label="Display name">
@@ -98,7 +97,7 @@ export function ProfilePage() {
           <Card>
             <CardHeader>
               <CardTitle>Account access</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">สิทธิ์ที่ mock จาก role และ team scope</p>
+              <p className="mt-1 text-sm text-muted-foreground">สิทธิ์ตาม role และ team scope ของคุณ</p>
             </CardHeader>
             <CardContent className="grid gap-3 p-5">
               {['Review team quality score', 'Manage training sessions', 'View knowledge favorites'].map((item) => (
@@ -115,12 +114,12 @@ export function ProfilePage() {
               <div className="grid h-12 w-12 place-items-center rounded-lg bg-secondary text-primary">
                 <FiUser className="h-5 w-5" />
               </div>
-              <p className="text-sm font-semibold text-foreground">Profile source</p>
+              <p className="text-sm font-semibold text-foreground">การตั้งค่าเพิ่มเติม</p>
               <p className="text-sm leading-6 text-muted-foreground">
-                หน้า mock นี้จะ map กับ user service ภายหลัง และควร sync ชื่อ/avatar/role/highest badge กลับไปที่ sidebar badge
+                ปรับสิทธิ์ผู้ใช้ การแจ้งเตือน และการเชื่อมต่อระบบได้ที่หน้า Settings
               </p>
               <a className="text-sm font-semibold text-primary hover:underline" href={routes.settings}>
-                Back to settings
+                ไปที่ Settings
               </a>
             </CardContent>
           </Card>

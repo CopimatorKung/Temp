@@ -280,7 +280,7 @@ export function RecordingReviewPage() {
           status: queueStatus,
           focus:
             queueStatus === 'draft'
-              ? 'บันทึกเสียงไว้แล้ว แต่ยังไม่ส่งเข้า ASR queue'
+              ? 'บันทึกเสียงแล้ว แต่ยังไม่ส่งให้ระบบประเมิน'
               : mode === 'browser_recording'
                 ? 'รออัดเสียงและประเมิน attempt ใหม่'
                 : 'รออัปโหลดเสียงและประเมิน attempt ใหม่',
@@ -327,10 +327,6 @@ export function RecordingReviewPage() {
             <Button onClick={() => setModalOpen(true)}>
               <FiPlus className="h-4 w-4" />
               New batch
-            </Button>
-            <Button variant="secondary" onClick={() => setTab('rubrics')} className={tab === 'rubrics' ? 'ring-2 ring-ring/30' : ''}>
-              <FiLayers className="h-4 w-4" />
-              Rubrics
             </Button>
           </div>
         </div>
@@ -507,7 +503,7 @@ function RecordingBatchDetail({
           <Card>
             <CardHeader>
               <CardTitle>Batch Summary</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">ระบบ mock จะประเมินแต่ละ attempt ตาม training rubric ที่เลือก</p>
+              <p className="mt-1 text-sm text-muted-foreground">ระบบจะประเมินแต่ละครั้งตามเกณฑ์การฝึกที่เลือก</p>
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <SummaryBox label="Status" value={statusLabel(batch.status)} />
@@ -521,7 +517,7 @@ function RecordingBatchDetail({
           <Card>
             <CardHeader>
               <CardTitle>Attempts in Batch</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">คลิก attempt เพื่อดูเสียงและ ASR transcript แบบ SRT</p>
+              <p className="mt-1 text-sm text-muted-foreground">คลิกแต่ละรอบเพื่อฟังเสียงและดู transcript</p>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
@@ -570,7 +566,7 @@ function RecordingBatchDetail({
           <Card>
             <CardHeader>
               <CardTitle>Rubric Score Breakdown</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">mock score ล่าสุดตาม section ของ training rubric</p>
+              <p className="mt-1 text-sm text-muted-foreground">คะแนนล่าสุดแยกตามหัวข้อในเกณฑ์การฝึก</p>
             </CardHeader>
             <CardContent className="grid gap-3 md:grid-cols-2">
               {[
@@ -598,7 +594,7 @@ function RecordingBatchDetail({
           <Card>
             <CardHeader>
               <CardTitle>Attempt Trend</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">ดู progression ของ batch นี้</p>
+              <p className="mt-1 text-sm text-muted-foreground">ดูพัฒนาการของชุดงานนี้</p>
             </CardHeader>
             <CardContent className="grid gap-4">
               {batch.attempts.map((attempt) => (
@@ -758,7 +754,7 @@ function UploadAudioModal({
               <h2 id="upload-audio-title" className="mt-1 text-xl font-semibold text-foreground">
                 Upload audio to batch
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">เพิ่มไฟล์เสียงเข้า batch นี้ แล้วรอประเมินด้วย training rubric ที่เลือก</p>
+              <p className="mt-1 text-sm text-muted-foreground">เพิ่มไฟล์เสียงเข้าชุดงานนี้ แล้วรอผลประเมินตามเกณฑ์ที่เลือก</p>
             </div>
             <button
               type="button"
@@ -811,7 +807,7 @@ function UploadAudioModal({
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="font-semibold text-foreground">Upload queue</p>
-                  <p className="mt-1 text-sm text-muted-foreground">ไฟล์ที่จะถูก map เข้า attempt ก่อนส่ง ASR/score queue</p>
+                  <p className="mt-1 text-sm text-muted-foreground">ไฟล์ที่รอประเมินในรอบถัดไป</p>
                 </div>
                 <Badge>{selectedFiles.length} selected</Badge>
               </div>
@@ -940,7 +936,7 @@ function RecordAttemptModal({ onClose, onSave }: { onClose: () => void; onSave: 
             <div className="mt-5 rounded-lg border border-border bg-background p-4">
               <p className="text-sm font-semibold text-foreground">บันทึกเสียงไว้แล้ว ต้องการส่งเข้า queue ตอนนี้ไหม?</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                ถ้ายังไม่มั่นใจ ให้เก็บเป็น draft ก่อนหรือทิ้ง recording นี้ได้ เพื่อไม่เสียค่า ASR โดยไม่จำเป็น
+                หากยังไม่พร้อม สามารถบันทึกเป็นร่างก่อน หรือยกเลิกการบันทึกนี้ได้
               </p>
               <div className="mt-4 flex flex-wrap justify-end gap-2">
                 <Button variant="destructive" className="h-9 px-3" onClick={onClose}>
@@ -956,7 +952,7 @@ function RecordAttemptModal({ onClose, onSave }: { onClose: () => void; onSave: 
             </div>
           ) : (
             <p className="mt-5 text-xs leading-5 text-muted-foreground">
-              เริ่มบันทึกเสียงแล้ว กด Pause เพื่อหยุดชั่วคราว หรือ Stop เพื่อบันทึกเสียงเป็น draft ก่อน แล้วค่อยเลือกว่าจะส่งเข้า ASR queue หรือไม่
+              เริ่มบันทึกเสียงแล้ว กด Pause เพื่อหยุดชั่วคราว หรือ Stop เพื่อบันทึกก่อน แล้วค่อยเลือกว่าจะส่งให้ระบบประเมินหรือไม่
             </p>
           )}
         </div>
@@ -1055,9 +1051,9 @@ function RecorderWaveform({ active }: { active: boolean }) {
 
   const meterLabel = {
     checking: 'กำลังขอสิทธิ์ microphone',
-    live: 'mic input live',
-    silent: 'mic connected · ยังไม่พบเสียงพูด',
-    paused: 'mic monitor paused',
+    live: 'ไมค์กำลังรับเสียง',
+    silent: 'เชื่อมต่อไมค์แล้ว · ยังไม่พบเสียงพูด',
+    paused: 'ไมค์หยุดพักชั่วคราว',
     blocked: 'ยังไม่ได้รับสิทธิ์ microphone หรือไม่พบสัญญาณเสียง',
   }[meterState];
   const barClass = meterState === 'live' ? 'bg-primary' : meterState === 'blocked' ? 'bg-destructive/45' : 'bg-primary/45';
@@ -1103,7 +1099,7 @@ function AttemptReviewModal({ attempt, onClose }: { attempt: Attempt; onClose: (
         >
           <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-5">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">ASR Review</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">รีวิว Transcript เสียง</p>
               <h2 id="attempt-review-title" className="mt-1 truncate text-xl font-semibold">
                 {attempt.label} · {attempt.source}
               </h2>
@@ -1331,7 +1327,7 @@ function RubricManagement() {
           <p className="mt-1 text-sm text-muted-foreground">
             {rubricTab === 'training'
               ? 'คลิก rubric เพื่อเปิดหน้าแก้ไข training rubric โดยตรง'
-              : 'test case ก่อนนำ rubric ไปใช้กับ batch จริง'}
+              : 'ชุดทดสอบก่อนนำเกณฑ์ไปใช้งานจริง'}
           </p>
         </CardHeader>
         <CardContent className="p-0">
@@ -1412,7 +1408,7 @@ function NewBatchModal({ onClose, onCreate }: { onClose: () => void; onCreate: (
         <div role="dialog" aria-modal="true" className="grid w-full max-w-2xl overflow-hidden rounded-lg border border-border bg-card shadow-panel">
           <div className="border-b border-border px-5 py-4">
             <h2 className="text-xl font-semibold">New Recording Batch</h2>
-            <p className="mt-1 text-sm text-muted-foreground">ตั้งชื่อ batch เลือก input mode และ training rubric ก่อนสร้าง queue</p>
+            <p className="mt-1 text-sm text-muted-foreground">ตั้งชื่อชุดงาน เลือกวิธีบันทึกเสียง และเกณฑ์การประเมิน</p>
           </div>
           <div className="grid gap-4 p-5">
             <Field label="Batch name">

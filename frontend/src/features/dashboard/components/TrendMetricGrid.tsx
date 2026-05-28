@@ -52,6 +52,10 @@ function TrendMetricCard({
         </div>
         <div className="mt-4">
           <Sparkline points={points} height={52} compact label={`${label} trend`} />
+          <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
+            <span>Min {Math.min(...points)}</span>
+            <span>Max {Math.max(...points)}</span>
+          </div>
         </div>
       </CardContent>
     </Card>

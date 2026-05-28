@@ -14,7 +14,7 @@ export function NotFoundPage() {
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">404 Not Found</p>
           <h1 className="mt-4 text-3xl font-semibold text-foreground">ไม่พบหน้าที่ต้องการ</h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            URL นี้ยังไม่มีใน mock platform หรืออาจถูกย้ายไปอยู่ใต้ sitemap ใหม่
+            URL นี้ไม่มีอยู่ใน Pitchsmith หรืออาจถูกย้ายไปอยู่ที่อื่นแล้ว
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Button variant="secondary" onClick={() => navigate(-1)}>

@@ -38,7 +38,7 @@ export function LoginPage() {
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Sign in</p>
                 <h2 className="mt-2 text-2xl font-semibold text-foreground">Welcome back</h2>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">ใช้บัญชีองค์กรเพื่อเข้าสู่ mock platform</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">ใช้บัญชีองค์กรเพื่อเข้าสู่ workspace</p>
               </div>
 
               <form

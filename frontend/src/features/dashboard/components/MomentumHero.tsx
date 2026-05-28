@@ -5,6 +5,7 @@ import { ExecutiveMetricCard } from './cards/ExecutiveMetricCard';
 import { Sparkline } from './visuals/Sparkline';
 
 const momentumPoints = [18, 28, 34, 44, 55, 60, 66, 78];
+const momentumXLabels = ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8'];
 
 export function MomentumHero() {
   return (
@@ -24,8 +25,15 @@ export function MomentumHero() {
             </p>
           </div>
         </div>
-        <div className="h-[128px] min-w-0 self-center rounded-lg bg-background/45 p-2">
-          <Sparkline points={momentumPoints} height={96} label="Team readiness trend" />
+        <div className="min-w-0 self-center rounded-lg bg-background/45 p-2">
+          <Sparkline
+            points={momentumPoints}
+            height={96}
+            label="Team readiness trend"
+            showAxes
+            xLabels={momentumXLabels}
+            yUnit="%"
+          />
         </div>
         <div className="grid min-w-0 gap-3 sm:grid-cols-3 xl:col-span-2 2xl:col-span-1">
           {executiveMetrics.map((metric) => (

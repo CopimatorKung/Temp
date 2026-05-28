@@ -39,11 +39,11 @@ export const knowledgeGaps = [
 ];
 
 export const lostDealReasons = [
-  { label: 'Discovery incomplete', value: 34, color: 'hsl(var(--primary))' },
-  { label: 'Weak objection handling', value: 27, color: 'hsl(var(--accent))' },
-  { label: 'Pricing confusion', value: 18, color: 'hsl(var(--warning))' },
-  { label: 'Compliance hesitation', value: 11, color: 'hsl(var(--success))' },
-  { label: 'Other', value: 10, color: 'hsl(var(--muted-foreground))' },
+  { label: 'Discovery incomplete',    value: 34, color: 'hsl(var(--primary))' },       // orange
+  { label: 'Weak objection handling', value: 27, color: 'hsl(215 55% 52%)' },          // blue
+  { label: 'Pricing confusion',       value: 18, color: 'hsl(var(--warning))' },        // amber
+  { label: 'Compliance hesitation',   value: 11, color: 'hsl(var(--success))' },        // green
+  { label: 'Other',                   value: 10, color: 'hsl(var(--muted-foreground))' }, // gray
 ];
 
 export const improvementAreas = [

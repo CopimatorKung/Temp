@@ -325,13 +325,23 @@ export function AudioQualityReviewPage() {
               ตรวจเสียง เอกสาร หรือบทความด้วย rubric เฉพาะ เช่น sales standard, SEO Organizer และ legal claim guardrail
             </p>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <PageTabButton active={activeTab === 'quality'} onClick={() => setActiveTab('quality')} icon={<FiClipboard />}>
+          <div className="inline-grid grid-cols-2 gap-1 rounded-lg border border-border bg-muted p-1">
+            <button
+              type="button"
+              onClick={() => setActiveTab('quality')}
+              className={['flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition', activeTab === 'quality' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'].join(' ')}
+            >
+              <FiClipboard className="h-4 w-4" />
               Quality Check
-            </PageTabButton>
-            <PageTabButton active={activeTab === 'templates'} onClick={() => setActiveTab('templates')} icon={<FiLayers />}>
-              Template Management
-            </PageTabButton>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('templates')}
+              className={['flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition', activeTab === 'templates' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'].join(' ')}
+            >
+              <FiLayers className="h-4 w-4" />
+              Templates
+            </button>
           </div>
         </div>
       </header>
@@ -442,7 +452,7 @@ function NewBatchModal({
               <h2 id="new-batch-dialog-title" className="text-base font-semibold">
                 New Batch
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">ตั้งชื่อ batch และเลือก guidance ก่อนสร้าง queue</p>
+              <p className="mt-1 text-sm text-muted-foreground">ตั้งชื่อชุดงานและเลือกเกณฑ์ประเมินก่อนสร้างคิว</p>
             </div>
             <button
               type="button"
@@ -499,15 +509,15 @@ function NewBatchModal({
             </div>
 
             <div className="rounded-lg border border-dashed border-primary/30 bg-primary/5 p-4">
-              <p className="text-sm font-semibold">{sourceType === 'audio' ? 'Mock audio batch' : 'Mock document batch'}</p>
+              <p className="text-sm font-semibold">{sourceType === 'audio' ? 'ตัวอย่างชุดไฟล์เสียง' : 'ตัวอย่างชุดเอกสาร'}</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 {sourceType === 'audio'
-                  ? 'จะสร้าง queue ตัวอย่าง 3 ไฟล์: webm, m4a, wav'
-                  : 'จะสร้าง queue ตัวอย่าง 4 ไฟล์: .md, .docx, .doc, .txt'}
+                  ? 'ระบบจะสร้างคิวตัวอย่าง 3 ไฟล์เสียง: webm, m4a, wav'
+                  : 'ระบบจะสร้างคิวตัวอย่าง 4 เอกสาร: md, docx, doc, txt'}
               </p>
               {sourceType === 'document' && (
                 <p className="mt-2 text-xs leading-5 text-muted-foreground">
-                  รองรับ Markdown, plain text และ Word document สำหรับ batch review แบบ async เช่นเดียวกับไฟล์เสียง
+                  รองรับไฟล์ข้อความและเอกสาร Word สำหรับตรวจสอบพร้อมกันหลายไฟล์ เช่นเดียวกับไฟล์เสียง
                 </p>
               )}
             </div>
@@ -572,7 +582,7 @@ function BatchOverview({
       <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <CardTitle>Review Batches</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">สร้าง batch แล้วค่อยกดเข้าไปดู process และ result รายไฟล์</p>
+          <p className="mt-1 text-sm text-muted-foreground">สร้างชุดงานแล้วเข้าไปดูผลการประเมินรายไฟล์</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone={batches.length > 0 ? 'success' : 'muted'}>{batches.length} batches</Badge>
@@ -600,7 +610,7 @@ function BatchOverview({
                   <td colSpan={5} className="px-4 py-8 text-center">
                     <p className="text-sm font-semibold">ยังไม่มี batch</p>
                     <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                      กด New Batch เพื่อเลือก source และ template แล้วเริ่ม queue งานตรวจคุณภาพ
+                      กด New Batch เพื่อเลือกไฟล์และเกณฑ์ประเมิน แล้วเริ่มตรวจสอบคุณภาพ
                     </p>
                   </td>
                 </tr>
@@ -709,7 +719,7 @@ function BatchDetail({
             </Button>
             <Button onClick={() => onRun(batch.id)} disabled={isRunning || batch.status === 'completed'}>
               <FiPlay className="h-4 w-4" />
-              {isRunning ? 'Running async' : batch.status === 'completed' ? 'Completed' : 'Run batch'}
+              {isRunning ? 'กำลังประมวลผล' : batch.status === 'completed' ? 'Completed' : 'Run batch'}
             </Button>
           </div>
         </CardHeader>
@@ -726,7 +736,7 @@ function BatchDetail({
           <Card>
             <CardHeader>
               <CardTitle>Files in batch</CardTitle>
-              <p className="mt-1 text-sm text-muted-foreground">ระบบ mock จะ process แบบ async เรียงทีละไฟล์หรือทีละ document</p>
+              <p className="mt-1 text-sm text-muted-foreground">ระบบจะตรวจสอบทีละไฟล์ตามลำดับ</p>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
@@ -789,7 +799,7 @@ function BatchDetail({
               <CardContent>
                 <div className="rounded-lg border border-dashed border-border bg-muted p-6 text-center">
                   <p className="text-sm font-semibold">ยังไม่มี result สำหรับไฟล์นี้</p>
-                  <p className="mt-2 text-sm text-muted-foreground">กด Run batch แล้วระบบจะ process ไฟล์ตามลำดับ queue</p>
+                  <p className="mt-2 text-sm text-muted-foreground">กด Run batch แล้วระบบจะตรวจสอบไฟล์ตามลำดับ</p>
                 </div>
               </CardContent>
             </Card>
@@ -909,12 +919,12 @@ function QualityFileAsrReviewModal({ file, onClose }: { file: BatchFile; onClose
         >
           <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-5">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">ASR Review</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">รีวิว Transcript เสียง</p>
               <h2 id="quality-asr-review-title" className="mt-1 truncate text-xl font-semibold">
                 {file.name}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Quality batch file · Botnoi ASR mock · score {file.score ? `${file.score}/100` : '-'}
+                Quality batch file · Botnoi ASR · score {file.score ? `${file.score}/100` : '-'}
               </p>
             </div>
             <button
@@ -1156,7 +1166,7 @@ function QualityBatchReportModal({
                 Export evaluation report
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                รวมผลประเมินทุกไฟล์ใน batch พร้อม score, evidence summary, transcript และสถานะ queue
+                รวมผลประเมินทุกไฟล์ในชุดงาน พร้อมคะแนน สรุปหลักฐาน และสถานะแต่ละไฟล์
               </p>
             </div>
             <button
@@ -1238,7 +1248,7 @@ function QualityBatchReportModal({
                   </div>
                 </div>
                 <div className="rounded-lg border border-border bg-white p-4">
-                  <p className="text-xs font-semibold uppercase text-muted-foreground">Mock destination</p>
+                  <p className="text-xs font-semibold uppercase text-muted-foreground">ไฟล์ที่จะถูกดาวน์โหลด</p>
                   <p className="mt-2 break-all text-sm font-semibold">{selectedExport.fileName}</p>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">
                     {exportFormat === 'pdf'
@@ -1402,7 +1412,7 @@ function QualityBatchUploadModal({
             <div className="rounded-lg border border-border bg-muted/50 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold">Mock upload queue</p>
+                  <p className="text-sm font-semibold">ไฟล์ที่รอส่งเข้าระบบ</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {mockFiles.length} files ready · {audioCount} audio · {documentCount} documents
                   </p>
@@ -1508,7 +1518,7 @@ function BatchOverviewPanel({
     <Card>
       <CardHeader>
         <CardTitle>Batch Overview</CardTitle>
-        <p className="mt-1 text-sm text-muted-foreground">ภาพรวมคะแนนและ progress ของ batch นี้</p>
+        <p className="mt-1 text-sm text-muted-foreground">ภาพรวมคะแนนและความคืบหน้าของชุดงานนี้</p>
       </CardHeader>
       <CardContent className="grid gap-4">
         <div className="rounded-lg border border-border bg-muted p-4">

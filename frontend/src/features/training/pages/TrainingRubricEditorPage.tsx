@@ -49,7 +49,7 @@ export function TrainingRubricEditorPage() {
           <CardContent>
             <div className="rounded-lg border border-dashed border-border bg-muted p-6 text-center">
               <p className="text-sm font-semibold">ไม่พบ training rubric</p>
-              <p className="mt-2 text-sm text-muted-foreground">rubric id นี้ยังไม่มีใน mock registry</p>
+              <p className="mt-2 text-sm text-muted-foreground">ไม่พบเกณฑ์การฝึกที่ระบุ</p>
               <Link to={routes.recordingReview} className="mt-4 inline-flex">
                 <Button>
                   <FiArrowLeft className="h-4 w-4" />
@@ -74,7 +74,7 @@ export function TrainingRubricEditorPage() {
             </Link>
             <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Training Rubric Editor</p>
             <h1 className="mt-1.5 text-xl font-semibold text-foreground">{rubric.name}</h1>
-            <p className="mt-1.5 text-xs leading-5 text-muted-foreground">แก้ไข metadata, section, rule และ validation readiness สำหรับ recording review</p>
+            <p className="mt-1.5 text-xs leading-5 text-muted-foreground">แก้ไขรายละเอียด หัวข้อ กฎ และความพร้อมของเกณฑ์สำหรับการตรวจสอบเสียง</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Badge tone={rubric.status === 'published' ? 'success' : 'muted'}>{rubric.status}</Badge>
@@ -98,7 +98,7 @@ export function TrainingRubricEditorPage() {
                   <Badge tone={rubric.status === 'published' ? 'success' : 'muted'}>{rubric.status}</Badge>
                   <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">v{rubric.version.replace(/^v/, '')}</span>
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">metadata ย่อสำหรับจับคู่กับ recording batch โดยไม่แย่งพื้นที่ rule editor</p>
+                <p className="mt-1 text-sm text-muted-foreground">ข้อมูลเกณฑ์ฉบับย่อสำหรับอ้างอิงเมื่อเลือกใช้กับชุดการบันทึกเสียง</p>
               </div>
               <div className="flex items-center gap-2">
                 {editingDetail ? (
@@ -151,7 +151,7 @@ export function TrainingRubricEditorPage() {
             <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <CardTitle>Sections and Rules</CardTitle>
-                <p className="mt-1 text-sm text-muted-foreground">mock editor สำหรับ training rubric weight, severity และ evidence</p>
+                <p className="mt-1 text-sm text-muted-foreground">แก้ไขน้ำหนักคะแนน ระดับความสำคัญ และหลักฐานที่คาดหวังในแต่ละข้อ</p>
               </div>
               <Button variant="secondary">
                 <FiPlus className="h-4 w-4" />
@@ -223,8 +223,8 @@ export function TrainingRubricEditorPage() {
               <CardTitle>Batch Impact</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2 p-4 pt-0 text-sm text-muted-foreground">
-              <p className="rounded-lg bg-muted p-3 leading-6">rubric นี้ถูกใช้กับ Recording Review Batch และ score เก่าจะอ้างอิง version เดิมเสมอ</p>
-              <p className="rounded-lg bg-muted p-3 leading-6">ถ้าเปลี่ยน rule หรือ weight ควร publish เป็น version ใหม่ก่อนใช้กับ batch ใหม่</p>
+              <p className="rounded-lg bg-muted p-3 leading-6">เกณฑ์นี้ถูกใช้กับชุดฝึกอยู่แล้ว คะแนนเดิมจะอ้างอิงเกณฑ์รุ่นเดิมเสมอ</p>
+              <p className="rounded-lg bg-muted p-3 leading-6">หากต้องการเปลี่ยนกฎหรือน้ำหนักคะแนน ควรบันทึกเป็นเวอร์ชันใหม่ก่อนใช้กับชุดงานใหม่</p>
             </CardContent>
           </Card>
         </aside>

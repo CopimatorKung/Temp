@@ -243,6 +243,7 @@ export function VoiceRoleplayPage() {
               personas={personas}
               averageScore={averageScore}
               onOpenSession={(id) => navigate(buildPath.voiceRoleplaySession({ sessionId: id }))}
+              onStartSession={() => setChoosingPersona(true)}
             />
           ) : activeTab === 'persona-management' ? (
             <PersonaManagementTab
@@ -332,7 +333,7 @@ function SenarioSessionPage({
             Back to Senario
           </Link>
           <h1 className="mt-4 text-xl font-semibold text-foreground">Session not found</h1>
-          <p className="mt-1 text-sm text-muted-foreground">ไม่พบ session นี้ใน mock data</p>
+          <p className="mt-1 text-sm text-muted-foreground">ไม่พบข้อมูลของ session นี้</p>
         </header>
       </div>
     );
@@ -400,8 +401,8 @@ function RoleplayHeader({
           </h1>
           <p className="mt-1.5 max-w-3xl text-xs leading-5 text-muted-foreground">
             {isLiveSession
-              ? 'กำลังฝึกสนทนากับ AI persona โฟกัสที่ conversation log, push to talk และข้อความตอบกลับ'
-              : 'เลือก persona, meeting room และ scenario เพื่อเริ่ม sales Senario ผ่าน WSS, Botnoi ASR/TTS และ preloaded Playbook Section ลด latency ระหว่างซ้อม'}
+              ? 'กำลังฝึกสนทนากับ AI โฟกัสที่บทสนทนา การพูด และคำตอบที่ได้รับ'
+              : 'เลือกลูกค้า AI ห้องประชุม และสถานการณ์ เพื่อเริ่มฝึกสนทนาผ่านเสียงพร้อมข้อมูลจากคู่มือ'}
           </p>
         </div>
         {isLiveSession ? (
@@ -433,15 +434,28 @@ function SessionHistoryTab({
   personas,
   averageScore,
   onOpenSession,
+  onStartSession,
 }: {
   sessions: typeof initialSessions;
   personas: typeof initialPersonas;
   averageScore: number;
   onOpenSession: (sessionId: string) => void;
+  onStartSession: () => void;
 }) {
   return (
     <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
       <div className="grid min-w-0 content-start gap-5">
+        <div className="flex flex-col gap-3 rounded-lg border border-primary/20 bg-primary/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">พร้อมฝึกแล้วไหม?</p>
+            <p className="mt-1 text-base font-semibold text-foreground">เริ่ม Senario Session ใหม่</p>
+            <p className="mt-1 text-sm text-muted-foreground">เลือก AI Customer และสถานการณ์ แล้วฝึกสนทนาผ่านเสียง</p>
+          </div>
+          <Button type="button" onClick={onStartSession}>
+            <FiMic className="h-4 w-4" />
+            Start session
+          </Button>
+        </div>
         <StatGrid
           stats={[
             { label: 'Past sessions', value: sessions.length, icon: FiClock },

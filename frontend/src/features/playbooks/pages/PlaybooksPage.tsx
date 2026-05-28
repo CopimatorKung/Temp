@@ -139,7 +139,7 @@ export function PlaybooksPage() {
             <Badge tone="muted">{filteredBooks.length} books</Badge>
             <Button type="button" variant="secondary" className="h-9 px-3" onClick={() => setToolsDrawerOpen(true)}>
               <FiSliders className="h-4 w-4" />
-              Sort / filter
+              Library tools
             </Button>
           </div>
         </div>
@@ -212,9 +212,9 @@ type KnowledgeToolsDrawerProps = {
 };
 
 const toolStatusItems = [
-  { label: 'Turso BM25', value: 'synced', tone: 'success' as const },
-  { label: 'Kotaemon', value: 'ready', tone: 'default' as const },
-  { label: 'LEANN', value: '2 pending', tone: 'warning' as const },
+  { label: 'ฐานค้นหาข้อความ', value: 'synced', tone: 'success' as const },
+  { label: 'ระบบ AI อ่านเอกสาร', value: 'ready', tone: 'default' as const },
+  { label: 'ระบบค้นหาส่วนตัว', value: '2 pending', tone: 'warning' as const },
 ];
 
 function KnowledgeToolsDrawer({
@@ -262,7 +262,7 @@ function KnowledgeToolsDrawer({
                 <h2 id="knowledge-tools-title" className="mt-1 text-lg font-semibold text-foreground">
                   Secondary workspace
                 </h2>
-                <p className="mt-1 text-sm text-muted-foreground">จัดการไฟล์ media, sync status และรายการ favorite โดยไม่เบียดพื้นที่ Playbooks</p>
+                <p className="mt-1 text-sm text-muted-foreground">จัดการไฟล์ สถานะการซิงค์ และรายการโปรดโดยไม่เบียดพื้นที่ Playbooks</p>
               </div>
               <Button type="button" variant="ghost" className="h-9 w-9 p-0" onClick={onClose} aria-label="Close library tools">
                 <FiX className="h-4 w-4" />
@@ -468,7 +468,7 @@ function BookDetailPage({ book, onBack }: { book?: KnowledgeBook; onBack: () => 
         <Card>
           <CardContent>
             <h1 className="text-xl font-semibold text-foreground">Book not found</h1>
-            <p className="mt-1 text-sm text-muted-foreground">ไม่พบ book นี้ใน mock data</p>
+            <p className="mt-1 text-sm text-muted-foreground">ไม่พบ Playbook ที่ระบุ</p>
           </CardContent>
         </Card>
       </main>
@@ -828,7 +828,7 @@ function DeleteBookModal({ bookTitle, onClose, onConfirm }: { bookTitle: string;
               Delete book?
             </h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              คุณกำลังจะลบ “{bookTitle}” จาก mock library. ในระบบจริง action นี้ควร archive ก่อนลบถาวรเพื่อกัน source citation หาย
+              คุณกำลังจะลบ “{bookTitle}” ออกจากระบบ การลบถาวรอาจทำให้ AI สูญเสียข้อมูลอ้างอิงที่เคยใช้ แนะนำให้เก็บถาวรแทน
             </p>
           </div>
           <div className="flex flex-wrap justify-end gap-2 px-5 py-4">

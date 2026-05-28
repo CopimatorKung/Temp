@@ -17,7 +17,7 @@ export function TrackLeaderboard({ rankedTracks, onOpenTrack }: TrackLeaderboard
           <CardTitle>Track Leaderboard</CardTitle>
           <p className="mt-1 text-sm text-muted-foreground">อันดับ progress ล่าสุด ใช้ scan track ที่ใกล้ badge หรือยังตามหลัง</p>
         </div>
-        <Badge tone="default">updated mock</Badge>
+        <Badge tone="default">อัปเดตล่าสุด</Badge>
       </CardHeader>
       <CardContent className="grid gap-2 p-3">
         {rankedTracks.map((track, index) => (

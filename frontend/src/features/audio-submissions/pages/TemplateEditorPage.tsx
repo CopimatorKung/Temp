@@ -68,7 +68,7 @@ export function TemplateEditorPage() {
           <CardContent>
             <div className="rounded-lg border border-dashed border-border bg-muted p-6 text-center">
               <p className="text-sm font-semibold">ไม่พบ template</p>
-              <p className="mt-2 text-sm text-muted-foreground">template id นี้ยังไม่มีใน mock registry</p>
+              <p className="mt-2 text-sm text-muted-foreground">ไม่พบเกณฑ์ประเมินที่ระบุ</p>
               <Link to={routes.audioNew} className="mt-4 inline-flex">
                 <Button>
                   <FiArrowLeft className="h-4 w-4" />
@@ -102,7 +102,7 @@ export function TemplateEditorPage() {
             </p>
             <h1 className="mt-1.5 text-xl font-semibold text-foreground">{template.name}</h1>
             <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
-              แก้ไข metadata, scope, sections และ rubric rules สำหรับ quality review template
+              แก้ไขรายละเอียด ขอบเขต หัวข้อ และกฎการให้คะแนนสำหรับเกณฑ์ประเมิน
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -137,7 +137,7 @@ export function TemplateEditorPage() {
         <section className="grid min-w-0 content-start gap-5">
           <CollapsibleCard
             title="Template Detail"
-            description="ข้อมูลหลักที่ใช้จับคู่ template กับ batch/source"
+            description="ข้อมูลหลักสำหรับเชื่อมโยงเกณฑ์ประเมินกับชุดงาน"
             open={openCards.setup}
             onToggle={() => toggleCard('setup')}
             actions={
@@ -227,7 +227,7 @@ export function TemplateEditorPage() {
 
           <CollapsibleCard
             title="Sections and Rules"
-            description="Mock editor สำหรับ weight, severity และ expected evidence"
+            description="แก้ไขน้ำหนักคะแนน ระดับความสำคัญ และหลักฐานที่คาดหวังในแต่ละข้อ"
             open={openCards.sections}
             onToggle={() => toggleCard('sections')}
             actions={

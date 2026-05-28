@@ -20,9 +20,9 @@ export function LostDealsPanel() {
         <div className="relative mx-auto h-36 w-36 rounded-full xl:h-32 xl:w-32 2xl:h-36 2xl:w-36" style={{ background: gradient }}>
           <div className="absolute inset-8 grid place-items-center rounded-full bg-card text-center">
             <div>
-              <p className="text-xs text-muted-foreground">Total</p>
-              <p className="text-2xl font-semibold">143</p>
-              <p className="text-xs text-muted-foreground">Lost Deals</p>
+              <p className="text-[9px] text-muted-foreground">Total</p>
+              <p className="text-base font-semibold leading-tight">143</p>
+              <p className="text-[9px] text-muted-foreground">Lost Deals</p>
             </div>
           </div>
         </div>

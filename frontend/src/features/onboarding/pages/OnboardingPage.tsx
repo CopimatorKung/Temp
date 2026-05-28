@@ -105,7 +105,7 @@ function TrackManagement({ onEditTrack }: { onEditTrack: (trackId: string) => vo
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Track Management</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">จัดการ track, topic, linked Senario และ badge threshold</p>
+            <p className="mt-1 text-sm text-muted-foreground">จัดการหลักสูตร หัวข้อ การฝึกสนทนา และเกณฑ์รับ badge</p>
           </div>
           <Button type="button" variant="secondary" onClick={() => setNewTrackOpen(true)}>
             <FiTarget className="h-4 w-4" />
@@ -182,7 +182,7 @@ function NewTrackModal({ onClose }: { onClose: () => void }) {
               <h2 id="new-track-title" className="mt-1 text-xl font-semibold text-foreground">
                 New track
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">สร้าง learning path จาก topics, Senario และ badge rule ก่อน publish ให้ sales team</p>
+              <p className="mt-1 text-sm text-muted-foreground">สร้างเส้นทางเรียนรู้จากหัวข้อ การฝึกสนทนา และเกณฑ์รับ badge ก่อนเผยแพร่ให้ทีม Sales</p>
             </div>
             <Button type="button" variant="ghost" className="h-9 w-9 p-0" onClick={onClose} aria-label="Close new track modal">
               <FiX className="h-4 w-4" />
@@ -245,7 +245,7 @@ function NewTrackModal({ onClose }: { onClose: () => void }) {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h3 className="font-semibold text-foreground">Starter topics</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">mock topic แรก ๆ ที่ระบบจะสร้างให้ใน track</p>
+                    <p className="mt-1 text-sm text-muted-foreground">หัวข้อเริ่มต้นที่ระบบสร้างให้สำหรับหลักสูตรใหม่</p>
                   </div>
                   <Button type="button" variant="secondary" className="h-9">
                     <FiPlus className="h-4 w-4" />
@@ -513,7 +513,7 @@ function NewBadgeModal({ onClose }: { onClose: () => void }) {
               <section className="rounded-lg border border-border bg-background/60 p-4">
                 <h3 className="font-semibold text-foreground">Rule preview</h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Badge จะออกให้เมื่อ track progress ถึง threshold และ expiry date จะถูก set อัตโนมัติ 6 เดือนหลัง issued date
+                  Badge จะออกให้เมื่อความคืบหน้าถึงเป้าหมาย และจะหมดอายุโดยอัตโนมัติ 6 เดือนหลังจากได้รับ
                 </p>
               </section>
             </aside>
@@ -711,7 +711,7 @@ function TrackEditor({ track, onBack }: { track: OnboardingTrack; onBack: () => 
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Track Management</p>
             <h1 className="mt-1 text-2xl font-semibold text-foreground md:text-3xl">Edit {track.title}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">mock editor สำหรับจัด topic, rule และ badge threshold</p>
+            <p className="mt-2 text-sm text-muted-foreground">แก้ไขหัวข้อ กฎ และเกณฑ์รับ badge ของหลักสูตรนี้</p>
           </div>
           <Button type="button">
             <FiCheckCircle className="h-4 w-4" />
@@ -782,7 +782,7 @@ function TrackEditor({ track, onBack }: { track: OnboardingTrack; onBack: () => 
           </CardHeader>
           <CardContent className="grid gap-3 text-sm text-muted-foreground">
             <p>Track progress คำนวณจาก topic ที่ complete แล้วเทียบกับ topic ทั้งหมด</p>
-            <p>ถ้า topic type เป็น Senario ระบบจะฟัง event จาก Senario session แล้ว mark complete เมื่อ score ผ่าน required score</p>
+            <p>หากหัวข้อเป็นการฝึกสนทนา ระบบจะบันทึกว่าเสร็จสิ้นเมื่อคะแนนผ่านเกณฑ์ที่กำหนด</p>
           </CardContent>
         </Card>
       </section>
@@ -791,7 +791,7 @@ function TrackEditor({ track, onBack }: { track: OnboardingTrack; onBack: () => 
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Topics</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">จัดลำดับด้วย Index แล้วผูก source หรือ Senario ที่เกี่ยวข้อง</p>
+            <p className="mt-1 text-sm text-muted-foreground">จัดลำดับหัวข้อและเชื่อมกับแหล่งเรียนรู้หรือการฝึกสนทนาที่เกี่ยวข้อง</p>
           </div>
           <Button type="button" variant="secondary">
             Add topic

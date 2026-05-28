@@ -16,7 +16,7 @@ export function ReadinessHeatmap() {
     <Card className="min-w-0">
       <CardHeader>
         <CardTitle>Team Readiness Heatmap</CardTitle>
-        <p className="mt-1 text-sm text-muted-foreground">Investor view of readiness gaps by team and competency.</p>
+        <p className="mt-1 text-sm text-muted-foreground">ภาพรวมช่องว่างความพร้อมของแต่ละทีมและทักษะ</p>
       </CardHeader>
       <CardContent className="overflow-x-auto p-0">
         <table className="w-full min-w-[680px] border-collapse text-left text-sm xl:min-w-0">

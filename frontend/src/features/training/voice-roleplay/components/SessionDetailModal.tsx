@@ -301,7 +301,7 @@ function SessionKnowledgePanel({
         <Card className="overflow-hidden">
           <CardHeader>
             <CardTitle>Saved for later</CardTitle>
-            <p className="mt-1 text-sm text-muted-foreground">mock state สำหรับส่งไปหน้า Knowledge</p>
+            <p className="mt-1 text-sm text-muted-foreground">แหล่งความรู้ที่บันทึกไว้จาก session นี้</p>
           </CardHeader>
           <CardContent className="grid gap-3">
             <div className="rounded-lg border border-border bg-secondary/35 p-3">
@@ -309,7 +309,7 @@ function SessionKnowledgePanel({
               <p className="mt-1 text-sm text-muted-foreground">favorite sources from this session</p>
             </div>
             <p className="text-sm leading-6 text-muted-foreground">
-              เมื่อ backend พร้อม ระบบควร persist favorite เป็น user knowledge bookmark เพื่อให้กลับไปอ่านในหน้า Knowledge ได้
+              กลับไปอ่านแหล่งความรู้ที่บันทึกไว้ได้ที่หน้า Knowledge
             </p>
           </CardContent>
         </Card>
@@ -386,7 +386,7 @@ function SessionConversationPanel({
             <div className="grid max-h-[min(58vh,560px)] gap-4 overflow-y-auto border-t border-border p-4 pr-3">
               {conversation.length === 0 ? (
                 <div className="rounded-lg border border-dashed border-border bg-background/70 p-5 text-sm text-muted-foreground">
-                  ยังไม่มี conversation log สำหรับ session นี้ใน mock data
+                  ยังไม่มี conversation log สำหรับ session นี้
                 </div>
               ) : null}
 

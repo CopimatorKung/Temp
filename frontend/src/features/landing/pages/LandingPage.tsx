@@ -54,7 +54,7 @@ export function LandingPage() {
             <div className="mt-7 flex flex-wrap gap-3">
               <Link to={routes.login}>
                 <Button>
-                  View Mock Platform
+                  เข้าสู่ Platform
                   <FiArrowRight className="h-4 w-4" />
                 </Button>
               </Link>

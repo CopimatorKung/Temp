@@ -1,6 +1,7 @@
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
 import { AdminUsersPage } from '../features/admin/pages/AdminUsersPage';
+import { ColorPalettePage } from '../features/admin/pages/ColorPalettePage';
 import { AudioQualityReviewPage } from '../features/audio-submissions/pages/AudioQualityReviewPage';
 import { TemplateEditorPage } from '../features/audio-submissions/pages/TemplateEditorPage';
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage';
@@ -64,6 +65,7 @@ export function App() {
                 <Route path="settings/track-categories" element={<AdminUsersPage view="track-categories" />} />
                 <Route path="settings/solutions" element={<AdminUsersPage view="solutions" />} />
                 <Route path="admin/users" element={<AdminUsersPage view="users-roles" />} />
+                <Route path="design/color-palette" element={<ColorPalettePage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </AppShell>
