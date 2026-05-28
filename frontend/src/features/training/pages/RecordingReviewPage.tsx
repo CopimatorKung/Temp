@@ -313,8 +313,8 @@ export function RecordingReviewPage() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background">
-      <header className="border-b border-border bg-card px-5 py-5 lg:px-8">
+    <div className="flex flex-1 flex-col overflow-hidden bg-background">
+      <header className="shrink-0 border-b border-border bg-card px-5 py-5 lg:px-8">
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Recording Review</h1>
@@ -331,7 +331,8 @@ export function RecordingReviewPage() {
         </div>
       </header>
 
-      <main className="grid w-full max-w-full gap-4 overflow-x-hidden p-4 lg:p-6">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="grid w-full max-w-full gap-4 p-4 lg:p-6">
         <div className="grid gap-2 md:grid-cols-4">
           <Metric label="Batches" value={`${batches.length}`} tone="default" />
           <Metric label="Avg score" value={`${averageScore}/100`} tone="warning" />
@@ -425,6 +426,7 @@ export function RecordingReviewPage() {
         ) : (
           <RubricManagement />
         )}
+        </div>
       </main>
 
       {modalOpen && <NewBatchModal onClose={() => setModalOpen(false)} onCreate={createBatch} />}
@@ -457,8 +459,8 @@ function RecordingBatchDetail({
   const improvement = lastScore - firstScore;
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background">
-      <header className="border-b border-border bg-card px-5 py-5 lg:px-8">
+    <div className="flex flex-1 flex-col overflow-hidden bg-background">
+      <header className="shrink-0 border-b border-border bg-card px-5 py-5 lg:px-8">
         <button type="button" onClick={onBack} className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
           <FiArrowLeft className="h-4 w-4" />
           Back to batches
@@ -496,7 +498,8 @@ function RecordingBatchDetail({
         </div>
       </header>
 
-      <main className="grid w-full max-w-full gap-5 overflow-x-hidden p-4 sm:p-5 lg:p-6 2xl:grid-cols-[minmax(0,1fr)_360px]">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="grid w-full max-w-full gap-5 p-4 sm:p-5 lg:p-6 2xl:grid-cols-[minmax(0,1fr)_360px]">
         <section className="grid min-w-0 gap-5">
           <Card>
             <CardHeader>
@@ -616,6 +619,7 @@ function RecordingBatchDetail({
             </CardContent>
           </Card>
         </aside>
+      </div>
       </main>
 
       {renameOpen && (
