@@ -439,17 +439,6 @@ function SessionHistoryTab({
   return (
     <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
       <div className="grid min-w-0 content-start gap-5">
-        <div className="flex flex-col gap-3 rounded-lg border border-primary/20 bg-primary/5 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">พร้อมฝึกแล้วไหม?</p>
-            <p className="mt-1 text-base font-semibold text-foreground">เริ่ม Senario Session ใหม่</p>
-            <p className="mt-1 text-sm text-muted-foreground">เลือก AI Customer และสถานการณ์ แล้วฝึกสนทนาผ่านเสียง</p>
-          </div>
-          <Button type="button" onClick={onStartSession}>
-            <FiMic className="h-4 w-4" />
-            Start session
-          </Button>
-        </div>
         <StatGrid
           stats={[
             { label: 'Past sessions', value: sessions.length, icon: FiClock },
