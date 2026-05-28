@@ -97,10 +97,7 @@ export function TemplateEditorPage() {
               <FiArrowLeft className="h-4 w-4" />
               Back to Quality
             </Link>
-            <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Template Editor
-            </p>
-            <h1 className="mt-1.5 text-xl font-semibold text-foreground">{template.name}</h1>
+            <h1 className="mt-3 text-xl font-semibold text-foreground">{template.name}</h1>
             <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
               แก้ไขรายละเอียด ขอบเขต หัวข้อ และกฎการให้คะแนนสำหรับเกณฑ์ประเมิน
             </p>

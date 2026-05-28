@@ -317,10 +317,7 @@ export function AudioQualityReviewPage() {
       <header className="border-b border-border bg-card px-5 py-4 lg:px-8">
         <div className="grid gap-4 xl:grid-cols-[minmax(260px,1fr)_auto] xl:items-end">
           <div className="max-w-2xl">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Module 1 · Quality Review Engine
-            </p>
-            <h1 className="mt-1.5 text-xl font-semibold text-foreground">เริ่ม Quality Review</h1>
+            <h1 className="text-xl font-semibold text-foreground">เริ่ม Quality Review</h1>
             <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
               ตรวจเสียง เอกสาร หรือบทความด้วย rubric เฉพาะ เช่น sales standard, SEO Organizer และ legal claim guardrail
             </p>

@@ -11,8 +11,7 @@ export function KnowledgeHeader({ onCreateBook, onOpenTools }: KnowledgeHeaderPr
     <section className="rounded-lg border border-border bg-card px-4 py-4 shadow-panel md:px-5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Playbook Library</p>
-          <h1 className="mt-1 text-xl font-semibold text-foreground md:text-2xl">จัดการ Playbooks สำหรับทีมขาย</h1>
+          <h1 className="text-xl font-semibold text-foreground md:text-2xl">จัดการ Playbooks สำหรับทีมขาย</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
             โฟกัสที่ book, chapter, topic และ page ที่ทีมใช้ซ้อม Senario, quality review และตอบ objection โดยอ้างอิง source เดิมได้
           </p>

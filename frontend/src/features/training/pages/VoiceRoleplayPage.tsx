@@ -348,10 +348,7 @@ function SenarioSessionPage({
         </Link>
         <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Senario Session
-            </p>
-            <h1 className="mt-1.5 text-xl font-semibold text-foreground">{session.title}</h1>
+            <h1 className="text-xl font-semibold text-foreground">{session.title}</h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
               {session.date} · {session.duration} · {personas.length} personas
             </p>
@@ -393,10 +390,7 @@ function RoleplayHeader({
     <header className="border-b border-border bg-card px-5 py-4 lg:px-8">
       <div className="grid gap-4 xl:grid-cols-[minmax(260px,1fr)_auto] xl:items-end">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Training · Senario
-          </p>
-          <h1 className="mt-1.5 text-xl font-semibold text-foreground">
+          <h1 className="text-xl font-semibold text-foreground">
             {isLiveSession ? 'Live Senario Session' : 'เลือก AI Customer เพื่อฝึก Senario ผ่านเสียง'}
           </h1>
           <p className="mt-1.5 max-w-3xl text-xs leading-5 text-muted-foreground">

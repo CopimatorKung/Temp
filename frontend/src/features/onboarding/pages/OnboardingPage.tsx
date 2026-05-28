@@ -50,8 +50,7 @@ export function OnboardingPage() {
   return (
     <main className="grid min-w-0 gap-5 p-4 md:p-5 lg:p-6">
       <section className="rounded-lg border border-border bg-card p-5 shadow-panel">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Onboarding Tracks</p>
-        <div className="mt-2 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
             <h1 className="text-2xl font-semibold text-foreground md:text-3xl">เลือก Specialty Track เพื่อปั้น Sales ให้พร้อมขาย</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
@@ -551,8 +550,7 @@ function TrackDetail({ track, onBack }: { track: OnboardingTrack; onBack: () => 
         </button>
         <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Track Detail</p>
-            <h1 className="mt-1 text-2xl font-semibold text-foreground md:text-3xl">{track.title}</h1>
+            <h1 className="text-2xl font-semibold text-foreground md:text-3xl">{track.title}</h1>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{track.description}</p>
           </div>
           <Badge tone={earned ? 'success' : 'warning'}>{earned ? 'badge unlocked' : `${track.badgeThreshold}% to badge`}</Badge>
@@ -709,8 +707,7 @@ function TrackEditor({ track, onBack }: { track: OnboardingTrack; onBack: () => 
         </button>
         <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Track Management</p>
-            <h1 className="mt-1 text-2xl font-semibold text-foreground md:text-3xl">Edit {track.title}</h1>
+            <h1 className="text-2xl font-semibold text-foreground md:text-3xl">Edit {track.title}</h1>
             <p className="mt-2 text-sm text-muted-foreground">แก้ไขหัวข้อ กฎ และเกณฑ์รับ badge ของหลักสูตรนี้</p>
           </div>
           <Button type="button">

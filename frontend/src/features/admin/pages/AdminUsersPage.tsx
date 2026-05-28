@@ -678,8 +678,7 @@ function SettingsIndexPage() {
   return (
     <main className="grid min-w-0 gap-5 p-4 md:p-5 lg:p-6">
       <header className="rounded-lg border border-border bg-card p-5 shadow-panel">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Settings</p>
-        <h1 className="mt-2 text-2xl font-semibold text-foreground md:text-3xl">ตั้งค่าระบบ Pitchsmith</h1>
+        <h1 className="text-2xl font-semibold text-foreground md:text-3xl">ตั้งค่าระบบ Pitchsmith</h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
           เลือกหมวด setting เพื่อจัดการ theme, role, security, knowledge sync และ notification ของ platform
         </p>
@@ -890,8 +889,7 @@ function SettingsManagementPage({
     <main className="grid min-w-0 gap-5 p-4 md:p-5 lg:p-6">
       <header className="flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-panel lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{eyebrow}</p>
-          <h1 className="mt-2 text-2xl font-semibold text-foreground md:text-3xl">{title}</h1>
+          <h1 className="text-2xl font-semibold text-foreground md:text-3xl">{title}</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{description}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -1127,8 +1125,7 @@ function ModalHeader({ eyebrow, title, onClose }: { eyebrow: string; title: stri
   return (
     <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
       <div className="min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{eyebrow}</p>
-        <h2 className="mt-1 text-xl font-semibold text-foreground">{title}</h2>
+        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
       </div>
       <Button type="button" variant="ghost" className="h-9 w-9 p-0" onClick={onClose} aria-label="Close modal">
         <FiX className="h-4 w-4" />
@@ -1189,8 +1186,7 @@ function ThemeSettingsPage() {
     <main className="grid min-w-0 gap-5 p-4 md:p-5 lg:p-6">
       <header className="flex flex-col gap-4 rounded-lg border border-border bg-card p-5 shadow-panel lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">Settings · Theme</p>
-          <h1 className="mt-2 text-2xl font-semibold text-foreground md:text-3xl">Theme</h1>
+          <h1 className="text-2xl font-semibold text-foreground md:text-3xl">Theme</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
             เลือกรูปแบบสีสำหรับ Pitchsmith ที่ใช้ทั่วทั้งแอปพลิเคชัน
           </p>

@@ -317,8 +317,7 @@ export function RecordingReviewPage() {
       <header className="border-b border-border bg-card px-5 py-5 lg:px-8">
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Training · Recording Review</p>
-            <h1 className="mt-2 text-2xl font-semibold text-foreground">Recording Review</h1>
+            <h1 className="text-2xl font-semibold text-foreground">Recording Review</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
               ฝึก pitch/mock call ด้วยการอัดเสียงใน browser หรืออัปโหลดไฟล์เสียง แล้วประเมินเป็น batch เพื่อดูพัฒนาการครั้งที่ 1, 2, 3
             </p>
@@ -466,8 +465,7 @@ function RecordingBatchDetail({
         </button>
         <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Recording Batch</p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-semibold text-foreground">{batch.name}</h1>
               <button
                 type="button"
